@@ -1465,16 +1465,23 @@ var confColors=["#22c55e","#f59e0b","#3b82f6","#a78bfa","#f472b6","#34d399","#fb
 function showSoldCelebration(playerName,role,price,teamName,teamColor){
   var el=document.getElementById("soldCelebration");
   var card=document.getElementById("soldCard");
+  if(!el||!card){console.error('soldCelebration elements missing');return;}
   document.getElementById("soldPlayerName").textContent=playerName;
   document.getElementById("soldPlayerRole").innerHTML='<span class="rb '+rbc(role)+'" style="font-size:14px">'+esc(role)+'</span>';
   document.getElementById("soldPriceEl").textContent=fmt(price);
   document.getElementById("soldTeamEl").innerHTML='<span style="color:'+teamColor+';font-weight:800">→ '+esc(teamName)+'</span>';
+  card.style.transition="none";
+  card.style.transform="translate(-50%,-50%) scale(0)";
   el.style.display="block";
-  setTimeout(function(){card.style.transform="translate(-50%,-50%) scale(1)";},30);
+  setTimeout(function(){
+    card.style.transition="transform .45s cubic-bezier(.34,1.56,.64,1)";
+    card.style.transform="translate(-50%,-50%) scale(1)";
+  },50);
   launchConfetti();
-  if(confettiTimer) clearTimeout(confettiTimer);
-  confettiTimer=setTimeout(hideSoldCelebration, 7000);
+  if(confettiTimer)clearTimeout(confettiTimer);
+  confettiTimer=setTimeout(function(){hideSoldCelebration();},7000);
 }
+
 
 function hideSoldCelebration(){
   var card=document.getElementById("soldCard");
@@ -1534,125 +1541,52 @@ var unsoldTimer=null;
 function showUnsoldStamp(playerName){
   var el=document.getElementById("unsoldStamp");
   var stamp=document.getElementById("stampEl");
+  if(!el||!stamp){console.error('unsoldStamp elements missing');return;}
   document.getElementById("unsoldPlayerName").textContent=playerName;
-  // Reset
   stamp.style.transition="none";
   stamp.style.transform="translate(-50%,-50%) scale(3) rotate(-15deg)";
   stamp.style.opacity="0";
   el.style.display="block";
-  // Slam in
   setTimeout(function(){
-    stamp.style.transition="all .35s cubic-bezier(.34,1.56,.64,1)";
+    stamp.style.transition="all .4s cubic-bezier(.34,1.56,.64,1)";
     stamp.style.transform="translate(-50%,-50%) scale(1) rotate(-12deg)";
     stamp.style.opacity="1";
-  },30);
-  // Fade out after 3s
-  if(unsoldTimer) clearTimeout(unsoldTimer);
+  },50);
+  if(unsoldTimer)clearTimeout(unsoldTimer);
   unsoldTimer=setTimeout(function(){
     stamp.style.transition="all .3s ease";
-    stamp.style.transform="translate(-50%,-50%) scale(0.8) rotate(-12deg)";
     stamp.style.opacity="0";
-    setTimeout(function(){
-      el.style.display="none";
-    },320);
-  },3000);
+    stamp.style.transform="translate(-50%,-50%) scale(0.8) rotate(-12deg)";
+    setTimeout(function(){el.style.display="none";},350);
+  },4000);
 }
 
-// Click anywhere to dismiss celebrations early
-document.addEventListener("click",function(){
-  var sc=document.getElementById("soldCelebration");
-  var us=document.getElementById("unsoldStamp");
-  if(sc&&sc.style.display!=="none") hideSoldCelebration();
-  if(us&&us.style.display!=="none"){
-    us.style.display="none";
-    if(unsoldTimer){clearTimeout(unsoldTimer);unsoldTimer=null;}
-  }
-},{capture:false,passive:true});
 
 </script>
 
-<!-- ═══ SOLD CELEBRATION ═══ -->
-<div id="soldCelebration" style="display:none;position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;">
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,.8);"></div>
-  <canvas id="confettiCanvas" style="position:absolute;inset:0;width:100%;height:100%;"></canvas>
-  <div id="soldCard" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
-    background:linear-gradient(135deg,#052e16,#065f46);border:3px solid #22c55e;border-radius:24px;
-    padding:36px 44px;text-align:center;min-width:300px;max-width:88vw;
-    box-shadow:0 0 60px #22c55e88,0 0 120px #22c55e33;
-    transition:transform .45s cubic-bezier(.34,1.56,.64,1);z-index:2;position:relative;">
-    <div style="font-size:64px;margin-bottom:6px;">🏆</div>
-    <div style="font-family:'Bebas Neue',cursive;font-size:58px;letter-spacing:5px;color:#22c55e;line-height:1;text-shadow:0 0 30px #22c55e;">SOLD!</div>
-    <div id="soldPlayerName" style="font-size:24px;font-weight:800;color:#f8fafc;margin-top:10px;"></div>
-    <div id="soldPlayerRole" style="margin-top:6px;"></div>
-    <div id="soldPriceEl" style="font-family:'Bebas Neue',cursive;font-size:40px;color:#f59e0b;margin-top:8px;letter-spacing:2px;"></div>
-    <div id="soldTeamEl" style="font-size:17px;font-weight:700;margin-top:6px;"></div>
+<!-- SOLD CELEBRATION -->
+<div id="soldCelebration" style="display:none;position:fixed;inset:0;z-index:9999;overflow:hidden;cursor:pointer" onclick="hideSoldCelebration()">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.82)"></div>
+  <canvas id="confettiCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
+  <div id="soldCard" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#052e16,#065f46);border:3px solid #22c55e;border-radius:20px;padding:32px 36px;text-align:center;min-width:280px;max-width:88vw;box-shadow:0 0 60px #22c55e88;transition:transform .45s cubic-bezier(.34,1.56,.64,1);z-index:2">
+    <div style="font-size:56px;margin-bottom:6px">🏆</div>
+    <div style="font-family:'Bebas Neue',cursive;font-size:52px;letter-spacing:4px;color:#22c55e;line-height:1;text-shadow:0 0 30px #22c55e">SOLD!</div>
+    <div id="soldPlayerName" style="font-size:20px;font-weight:800;color:#f8fafc;margin-top:8px"></div>
+    <div id="soldPlayerRole" style="margin-top:5px"></div>
+    <div id="soldPriceEl" style="font-family:'Bebas Neue',cursive;font-size:34px;color:#f59e0b;margin-top:6px;letter-spacing:2px"></div>
+    <div id="soldTeamEl" style="font-size:15px;font-weight:700;margin-top:5px"></div>
+    <div style="font-size:11px;color:#22c55e;margin-top:10px;opacity:.7">Tap anywhere to dismiss</div>
   </div>
 </div>
 
-<!-- ═══ UNSOLD STAMP ═══ -->
-<div id="unsoldStamp" style="display:none;position:fixed;inset:0;z-index:9999;pointer-events:none;overflow:hidden;">
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,.7);"></div>
-  <div id="stampEl" style="position:absolute;top:50%;left:50%;
-    transform:translate(-50%,-50%) scale(3) rotate(-15deg);opacity:0;
-    border:8px solid #ef4444;border-radius:16px;padding:22px 40px;text-align:center;
-    background:rgba(127,29,29,.35);backdrop-filter:blur(4px);
-    transition:all .4s cubic-bezier(.34,1.56,.64,1);">
-    <div style="font-family:'Bebas Neue',cursive;font-size:72px;letter-spacing:6px;
-      color:#ef4444;text-shadow:0 0 24px #ef4444;line-height:1;">UNSOLD</div>
-    <div id="unsoldPlayerName" style="font-size:18px;font-weight:800;color:#fca5a5;margin-top:4px;"></div>
+<!-- UNSOLD STAMP -->
+<div id="unsoldStamp" style="display:none;position:fixed;inset:0;z-index:9999;overflow:hidden;cursor:pointer" onclick="this.style.display='none'">
+  <div style="position:absolute;inset:0;background:rgba(0,0,0,.75)"></div>
+  <div id="stampEl" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(3) rotate(-15deg);opacity:0;border:8px solid #ef4444;border-radius:14px;padding:18px 36px;text-align:center;background:rgba(127,29,29,.4);transition:all .4s cubic-bezier(.34,1.56,.64,1)">
+    <div style="font-family:'Bebas Neue',cursive;font-size:64px;letter-spacing:6px;color:#ef4444;text-shadow:0 0 20px #ef4444;line-height:1">UNSOLD</div>
+    <div id="unsoldPlayerName" style="font-size:16px;font-weight:800;color:#fca5a5;margin-top:4px"></div>
+    <div style="font-size:11px;color:#f87171;margin-top:6px;opacity:.7">Tap to dismiss</div>
   </div>
 </div>
-
-
-
-
-<!-- FREE ADD PLAYER MODAL -->
-<div class="overlay" id="freeAddModal">
-  <div class="modal" style="max-width:460px">
-    <div class="mhdr">
-      <h3 id="freeAddTitle">Add Player to Team</h3>
-      <button class="xbtn" onclick="closeM('freeAddModal')">✕</button>
-    </div>
-
-    <!-- Search -->
-    <div style="margin-bottom:10px">
-      <input type="text" id="freeSearch" class="inp" placeholder="🔍 Search player by name, phone, CH #..."
-        oninput="renderFreeList()" style="font-size:14px"/>
-    </div>
-
-    <!-- Player list -->
-    <div id="freePlayerList" style="max-height:300px;overflow-y:auto;margin-bottom:12px;border:1px solid var(--border);border-radius:9px;"></div>
-
-    <!-- Amount (optional) -->
-    <div style="margin-bottom:12px">
-      <label class="lbl">Amount ₹ <span style="color:var(--muted);font-size:10px;letter-spacing:0;text-transform:none;font-weight:400">(optional — deducted from team budget)</span></label>
-      <input type="number" id="freeAmount" class="inp" placeholder="0 = Free, or enter amount" value="0" min="0"/>
-    </div>
-
-    <!-- Comment -->
-    <div style="margin-bottom:14px">
-      <label class="lbl">Reason / Comment <span style="color:var(--muted);font-size:10px;letter-spacing:0;text-transform:none;font-weight:400">(optional)</span></label>
-      <input type="text" id="freeComment" class="inp" placeholder="e.g. Replacement player, Captain pick..."/>
-    </div>
-
-    <input type="hidden" id="freeAddTeamId"/>
-    <input type="hidden" id="freeSelectedPlayerId" value=""/>
-
-    <div id="freeSelectedPreview" style="display:none;background:#052e16;border:1px solid var(--green);border-radius:9px;padding:10px 12px;margin-bottom:12px;display:none;align-items:center;gap:10px">
-      <div id="freeSelPhoto" style="width:36px;height:36px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🧑</div>
-      <div style="flex:1">
-        <div id="freeSelName" style="font-weight:800;color:#f8fafc;font-size:14px"></div>
-        <div id="freeSelRole" style="font-size:11px;margin-top:2px"></div>
-      </div>
-      <button type="button" onclick="clearFreeSelection()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
-    </div>
-
-    <div style="display:flex;gap:9px">
-      <button type="button" class="btn btn-g" onclick="confirmFreeAdd()" style="flex:1">✅ Add to Team</button>
-      <button type="button" class="btn btn-ghost" onclick="closeM('freeAddModal')" style="flex:1">Cancel</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
