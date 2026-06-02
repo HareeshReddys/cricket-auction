@@ -1145,6 +1145,7 @@ function renderTeams(){
               +(p.phone?'<span style="font-size:10px;color:var(--muted)">'+esc(p.phone)+'</span>':"")
               +(p.cricNum?'<span style="font-size:10px;color:var(--muted)">'+esc(p.cricNum)+'</span>':"")
               +(isFree?'<span style="font-size:10px;background:#1e2a4a;color:#60a5fa;padding:1px 6px;border-radius:8px">FREE</span>':"")
+              +(p.comment?'<div style="font-size:10px;color:var(--muted);margin-top:1px">'+esc(p.comment)+'</div>':"")
             +'</div>'
           +'</div>'
           +'<div style="font-weight:800;color:'+
@@ -1207,44 +1208,139 @@ function renderTeams(){
 
 
 // ─── FREE ADD PLAYER ───
-var selectedFreeRole="Batsman";
-function selectFreeRole(role,btn){
-  selectedFreeRole=role;
-  document.getElementById("freePlayerRole").value=role;
-  ["fr-Bat","fr-Bow","fr-AR","fr-WK"].forEach(function(id){
-    var b=document.getElementById(id);
-    if(b){b.style.background="";b.style.color="";}
-  });
-  if(btn){btn.style.background="#15803d";btn.style.color="#fff";}
-}
+var freeSelectedPlayer = null;
+
 function openFreeAdd(teamId){
-  document.getElementById("freeAddTeamId").value=teamId;
-  var t=teams.find(function(x){return x.id===teamId});
-  document.getElementById("freeAddTitle").textContent="Add Player Free → "+(t?t.name:"Team");
-  document.getElementById("freePlayerName").value="";
-  document.getElementById("freePlayerPhone").value="";
-  document.getElementById("freePlayerCH").value="";
-  selectedFreeRole="Batsman";
-  // Reset role buttons
-  selectFreeRole("Batsman",document.getElementById("fr-Bat"));
+  var t = teams.find(function(x){return x.id===teamId});
+  document.getElementById("freeAddTeamId").value  = teamId;
+  document.getElementById("freeAddTitle").textContent = "Add Player → "+(t?t.name:"Team");
+  document.getElementById("freeSearch").value     = "";
+  document.getElementById("freeAmount").value     = "0";
+  document.getElementById("freeComment").value    = "";
+  document.getElementById("freeSelectedPlayerId").value = "";
+  freeSelectedPlayer = null;
+  document.getElementById("freeSelectedPreview").style.display = "none";
+  renderFreeList();
   document.getElementById("freeAddModal").classList.add("open");
 }
+
+function renderFreeList(){
+  var sq = (document.getElementById("freeSearch").value||"").toLowerCase().trim();
+  var teamId = document.getElementById("freeAddTeamId").value;
+
+  // Only show verified players not already sold to any team
+  var available = allPlayers.filter(function(p){
+    if(p.Status !== "Verified") return false;
+    var auctP = auctPlayers.find(function(a){return a.id===p.RegID});
+    if(auctP && auctP.status==="sold") return false; // already sold
+    if(!sq) return true;
+    return [p.Name,p.Phone,p.CricHeroesNum,p.PlayerType].some(function(v){
+      return v && String(v).toLowerCase().includes(sq);
+    });
+  });
+
+  var el = document.getElementById("freePlayerList");
+  if(!available.length){
+    el.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);font-size:13px">'
+      +(sq?"No players match your search":"All verified players are already sold or no verified players found")
+      +'</div>';
+    return;
+  }
+
+  var listEl = document.getElementById("freePlayerList");
+  listEl.innerHTML = "";
+  available.forEach(function(p){
+    var auctP    = auctPlayers.find(function(a){return a.id===p.RegID});
+    var isUnsold = auctP && auctP.status==="unsold";
+    var isSel    = freeSelectedPlayer && freeSelectedPlayer.RegID===p.RegID;
+    var row      = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:center;gap:9px;padding:9px 11px;cursor:pointer;border-bottom:1px solid var(--border);background:"+(isSel?"#052e16":"transparent");
+    row.innerHTML =
+      (p.PhotoURL && p.PhotoURL.startsWith("data:")
+        ?'<img src="'+p.PhotoURL+'" style="width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid '+(isSel?"#22c55e":"#1a2535")+';flex-shrink:0"/>'
+        :'<div style="width:34px;height:34px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🧑</div>')
+      +'<div style="flex:1;min-width:0">'
+        +'<div style="font-weight:700;font-size:13px;color:#f1f5f9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.Name||"—")+'</div>'
+        +'<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:2px">'
+          +'<span class="rb '+rbc(p.PlayerType)+'" style="font-size:10px">'+esc(p.PlayerType||"—")+'</span>'
+          +(p.Phone?'<span style="font-size:10px;color:var(--muted)">'+esc(p.Phone)+'</span>':"")
+          +(isUnsold?'<span style="font-size:10px;background:#7f1d1d;color:#fca5a5;padding:1px 6px;border-radius:8px">Unsold</span>':"")
+        +'</div>'
+      +'</div>'
+      +(isSel?'<span style="color:#22c55e;font-size:16px;flex-shrink:0">✓</span>':"");
+    row.addEventListener("click", function(){ selectFreePlayer(p.RegID); });
+    listEl.appendChild(row);
+  });
+  el = listEl;
+}
+
+function selectFreePlayer(regId){
+  var p = allPlayers.find(function(x){return x.RegID===regId});
+  if(!p) return;
+  freeSelectedPlayer = p;
+  document.getElementById("freeSelectedPlayerId").value = regId;
+
+  // Show preview
+  var prev = document.getElementById("freeSelectedPreview");
+  prev.style.display = "flex";
+  document.getElementById("freeSelName").textContent = p.Name||"—";
+  document.getElementById("freeSelRole").innerHTML = '<span class="rb '+rbc(p.PlayerType)+'" style="font-size:11px">'+esc(p.PlayerType||"—")+'</span>';
+  var photoEl = document.getElementById("freeSelPhoto");
+  if(p.PhotoURL && p.PhotoURL.startsWith("data:")){
+    photoEl.innerHTML = '<img src="'+p.PhotoURL+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover;object-position:top"/>';
+  } else {
+    photoEl.textContent = "🧑";
+  }
+  renderFreeList(); // re-render to show checkmark
+}
+
+function clearFreeSelection(){
+  freeSelectedPlayer = null;
+  document.getElementById("freeSelectedPlayerId").value = "";
+  document.getElementById("freeSelectedPreview").style.display = "none";
+  renderFreeList();
+}
+
 function confirmFreeAdd(){
-  var name=document.getElementById("freePlayerName").value.trim();
-  if(!name){alert("Please enter player name");return;}
-  var teamId=document.getElementById("freeAddTeamId").value;
-  var phone=document.getElementById("freePlayerPhone").value.trim();
-  var ch=document.getElementById("freePlayerCH").value.trim();
-  var role=document.getElementById("freePlayerRole").value||selectedFreeRole||"Batsman";
-  var newP={
-    id:"free_"+Date.now(),name:name,phone:phone,cricNum:ch,
-    role:role,photo:"",basePrice:0,
-    status:"sold",soldTo:teamId,soldPrice:0,isFree:true
-  };
-  auctPlayers.push(newP);
+  var selId  = document.getElementById("freeSelectedPlayerId").value;
+  if(!selId){ notify("⚠ Please select a player from the list"); return; }
+  var teamId = document.getElementById("freeAddTeamId").value;
+  var amount = parseInt(document.getElementById("freeAmount").value)||0;
+  var comment= document.getElementById("freeComment").value.trim();
+  var p      = allPlayers.find(function(x){return x.RegID===selId});
+  if(!p){ notify("⚠ Player not found"); return; }
+
+  // Check if already in auctPlayers
+  var existing = auctPlayers.find(function(a){return a.id===selId});
+  if(existing){
+    // Update existing entry
+    auctPlayers = auctPlayers.map(function(a){
+      if(a.id!==selId) return a;
+      return Object.assign({},a,{status:"sold",soldTo:teamId,soldPrice:amount,isFree:true,comment:comment});
+    });
+  } else {
+    // Add new
+    auctPlayers.push({
+      id:selId, name:p.Name||"Unknown", phone:p.Phone||"",
+      role:p.PlayerType||"Batsman", photo:p.PhotoURL||"",
+      cricNum:p.CricHeroesNum||"", basePrice:amount,
+      status:"sold", soldTo:teamId, soldPrice:amount,
+      isFree:true, comment:comment
+    });
+  }
+
+  // Deduct amount from team budget
+  if(amount>0){
+    teams = teams.map(function(t){
+      return t.id===teamId ? Object.assign({},t,{budget:t.budget-amount}) : t;
+    });
+  }
+
   closeM("freeAddModal");
-  saveAuctionState();updateAll();renderTeams();
-  notify("✅ "+name+" added to team (Free)");
+  saveAuctionState();
+  updateAll();
+  renderTeams();
+  notify("✅ "+p.Name+" added to team"+(amount>0?" @ "+fmt(amount):"")+(comment?" ("+comment+")":""));
 }
 
 // ─── DOWNLOAD TEAM EXCEL (CSV) ───
@@ -1508,6 +1604,55 @@ document.addEventListener("click",function(){
 </div>
 
 
+
+
+<!-- FREE ADD PLAYER MODAL -->
+<div class="overlay" id="freeAddModal">
+  <div class="modal" style="max-width:460px">
+    <div class="mhdr">
+      <h3 id="freeAddTitle">Add Player to Team</h3>
+      <button class="xbtn" onclick="closeM('freeAddModal')">✕</button>
+    </div>
+
+    <!-- Search -->
+    <div style="margin-bottom:10px">
+      <input type="text" id="freeSearch" class="inp" placeholder="🔍 Search player by name, phone, CH #..."
+        oninput="renderFreeList()" style="font-size:14px"/>
+    </div>
+
+    <!-- Player list -->
+    <div id="freePlayerList" style="max-height:300px;overflow-y:auto;margin-bottom:12px;border:1px solid var(--border);border-radius:9px;"></div>
+
+    <!-- Amount (optional) -->
+    <div style="margin-bottom:12px">
+      <label class="lbl">Amount ₹ <span style="color:var(--muted);font-size:10px;letter-spacing:0;text-transform:none;font-weight:400">(optional — deducted from team budget)</span></label>
+      <input type="number" id="freeAmount" class="inp" placeholder="0 = Free, or enter amount" value="0" min="0"/>
+    </div>
+
+    <!-- Comment -->
+    <div style="margin-bottom:14px">
+      <label class="lbl">Reason / Comment <span style="color:var(--muted);font-size:10px;letter-spacing:0;text-transform:none;font-weight:400">(optional)</span></label>
+      <input type="text" id="freeComment" class="inp" placeholder="e.g. Replacement player, Captain pick..."/>
+    </div>
+
+    <input type="hidden" id="freeAddTeamId"/>
+    <input type="hidden" id="freeSelectedPlayerId" value=""/>
+
+    <div id="freeSelectedPreview" style="display:none;background:#052e16;border:1px solid var(--green);border-radius:9px;padding:10px 12px;margin-bottom:12px;display:none;align-items:center;gap:10px">
+      <div id="freeSelPhoto" style="width:36px;height:36px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🧑</div>
+      <div style="flex:1">
+        <div id="freeSelName" style="font-weight:800;color:#f8fafc;font-size:14px"></div>
+        <div id="freeSelRole" style="font-size:11px;margin-top:2px"></div>
+      </div>
+      <button type="button" onclick="clearFreeSelection()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
+    </div>
+
+    <div style="display:flex;gap:9px">
+      <button type="button" class="btn btn-g" onclick="confirmFreeAdd()" style="flex:1">✅ Add to Team</button>
+      <button type="button" class="btn btn-ghost" onclick="closeM('freeAddModal')" style="flex:1">Cancel</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
