@@ -411,11 +411,12 @@ var SCRIPT_URL="https://script.google.com/macros/s/AKfycbyO6LJex9kecpVIdnU9iWQ-T
 var ADMIN_PASS="cricket2025";
 var COLORS=["#FF6B35","#4ECDC4","#FFE66D","#A78BFA","#F472B6","#34D399","#F97316","#60A5FA","#E879F9","#FB923C"];
 var RBC={Batsman:"rBat",Bowler:"rBow","All-Rounder":"rAR","Wicket Keeper":"rWK"};
-var allPlayers=[],auctPlayers=[],teams=[],curFilter="All",roleFilter="All";
-var rejectTarget=null,deleteTarget=null,selColor=COLORS[0],bidPlayer=null;
-var cropTarget=null,cropX=0,cropY=0,cropZoom=1,croppedNW=0,croppedNH=0;
-var cropDragging=false,cropLastX=0,cropLastY=0,initDist=0,initZoom=1;
-var WRAP_H=270,CIRCLE_D=174;
+var allPlayers=[], auctPlayers=[], teams=[], curFilter="All", roleFilter="All";
+var rejectTarget=null, deleteTarget=null, selColor=COLORS[0], bidPlayer=null;
+var cropTarget=null, cropX=0, cropY=0, cropZoom=1, croppedNW=0, croppedNH=0;
+var cropDragging=false, cropLastX=0, cropLastY=0, initDist=0, initZoom=1;
+var WRAP_H=270, CIRCLE_D=174;
+var unsoldTimer=null;
 var freeSelectedPlayer=null;
 var confettiTimer=null,confettiInterval=null,unsoldTimer=null;
 
@@ -699,10 +700,28 @@ function closeDel(){closeM("deleteModal");}
 function confirmDelete(){
   if(!deleteTarget)return;
   var regId=deleteTarget;
+  var pName=(allPlayers.find(function(p){return p.RegID===regId;})||{}).Name||"Player";
+  // Remove from memory
   allPlayers=allPlayers.filter(function(p){return p.RegID!==regId;});
   auctPlayers=auctPlayers.filter(function(p){return p.id!==regId;});
-  closeDel();updateAll();notify("🗑️ Deleted");deleteTarget=null;
-  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deletePlayer",regId:regId})}).catch(function(){});
+  // Remove from localStorage auction state
+  try{
+    var savedAuct=localStorage.getItem("upl_auctState");
+    if(savedAuct){
+      var auctState=JSON.parse(savedAuct).filter(function(p){return p.id!==regId;});
+      localStorage.setItem("upl_auctState",JSON.stringify(auctState));
+    }
+  }catch(e){}
+  closeDel();updateAll();
+  // Save updated auction state to sheet (removes deleted player from sheet state too)
+  saveAuctionState();
+  notify("🗑️ "+pName+" deleted!");
+  deleteTarget=null;
+  // Delete from Google Sheet registrations
+  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deletePlayer",regId:regId})})
+  .then(function(r){return r.json();})
+  .then(function(d){if(!d.success)notify("⚠ Sheet delete failed: "+(d.error||""));})
+  .catch(function(){notify("⚠ Sheet connection failed");});
 }
 
 function viewPlayer(id){
