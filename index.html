@@ -490,16 +490,23 @@ function updateBadges(){
 
 // ── PERSIST STATE ──
 function saveAuctionState(){
+  // Lightweight state WITHOUT photo - photos come from allPlayers.PhotoURL via autoSyncVerified
+  // This avoids: (1) localStorage quota limit (~5MB), (2) Google Sheet cell limit (50,000 chars)
+  var lightState=auctPlayers.map(function(p){
+    return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,
+      availability:p.availability||"",status:p.status,
+      soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false,
+      comment:p.comment||""};
+  });
   try{
     localStorage.setItem("upl_teams",JSON.stringify(teams));
-    var auctState=auctPlayers.map(function(p){
-      return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,
-        photo:p.photo,availability:p.availability||"",status:p.status,
-        soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};
-    });
-    localStorage.setItem("upl_auctState",JSON.stringify(auctState));
-    saveAuctionToSheet(teams,auctState);
-  }catch(e){console.warn("Save failed:",e);}
+    localStorage.setItem("upl_auctState",JSON.stringify(lightState));
+  }catch(e){
+    console.warn("localStorage save failed:",e);
+    // Clear old data so stale state doesn't get re-merged on next load
+    try{localStorage.removeItem("upl_auctState");}catch(e2){}
+  }
+  saveAuctionToSheet(teams,lightState);
 }
 
 function saveAuctionToSheet(teamsData,auctStateData){
@@ -524,13 +531,19 @@ function mergeAuctState(auctState){
         if(p.id!==s.id)return p;
         return Object.assign({},p,{status:s.status||"pending",soldTo:s.soldTo||null,
           soldPrice:s.soldPrice||0,basePrice:s.basePrice||p.basePrice,
-          isFree:s.isFree||false,availability:s.availability||p.availability||""});
+          isFree:s.isFree||false,availability:s.availability||p.availability||"",
+          comment:s.comment||p.comment||""});
+        // photo intentionally not touched - comes from autoSyncVerified via PhotoURL
       });
     }else{
+      // Player sold/unsold but not yet in auctPlayers (e.g. from another device)
+      // Try to find photo from allPlayers registration data
+      var reg=allPlayers.find(function(x){return x.RegID===s.id;});
       auctPlayers.push({id:s.id,name:s.name||"Player",phone:s.phone||"",
-        role:s.role||"Batsman",photo:s.photo||"",cricNum:s.cricNum||"",
+        role:s.role||"Batsman",photo:(reg&&reg.PhotoURL)||"",cricNum:s.cricNum||"",
         availability:s.availability||"",basePrice:s.basePrice||3000,
-        status:s.status||"pending",soldTo:s.soldTo||null,soldPrice:s.soldPrice||0,isFree:s.isFree||false});
+        status:s.status||"pending",soldTo:s.soldTo||null,soldPrice:s.soldPrice||0,
+        isFree:s.isFree||false,comment:s.comment||""});
     }
   });
 }
@@ -805,7 +818,11 @@ function saveCrop(){
     renderTable();renderRecent();renderAuction();
   }else{
     auctPlayers=auctPlayers.map(function(ap){return ap.id===cropTarget.id?Object.assign({},ap,{photo:cropped}):ap;});
-    saveAuctionState();renderAuction();
+    // Also update registration sheet so photo syncs cross-device
+    var rp=allPlayers.find(function(x){return x.RegID===cropTarget.id;});
+    if(rp)rp.PhotoURL=cropped;
+    fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",regId:cropTarget.id,status:rp?rp.Status:"Verified",photo:cropped,verifiedBy:"Admin"})}).catch(function(){});
+    saveAuctionState();renderAuction();renderTeams();
   }
   closeCrop();notify("📸 Photo saved!");
 }
@@ -1120,7 +1137,14 @@ function renderTeams(){
         +'<div style="text-align:right;flex-shrink:0">'
           +'<div style="font-size:10px;color:var(--muted);letter-spacing:1px">REMAINING</div>'
           +'<div style="font-weight:800;font-size:18px;color:'+(t.budget<5000?"var(--red)":t.budget<t.initialBudget*.2?"var(--gold)":"var(--green)")+'">'+fmt(t.budget)+'</div>'
-          +'<div style="font-size:11px;color:var(--muted)">Spent: '+fmt(spent)+'</div></div>'
+          +'<div style="font-size:11px;color:var(--muted)">Spent: '+fmt(spent)+'</div>'
+          +(function(){
+            var maxAfford=Math.floor(t.budget/3000);
+            var slotsLeft=Math.max(0,18-totalCount);
+            var canBuy=Math.min(maxAfford,slotsLeft);
+            if(slotsLeft===0) return '<div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">✅ Squad full</div>';
+            return '<div style="font-size:11px;color:#60a5fa;font-weight:700;margin-top:2px">Can buy '+canBuy+' more @ ₹3000 (slots: '+slotsLeft+')</div>';
+          })()+'</div>'
       +'</div>'
       +'<div class="bbar" style="margin-top:8px"><div class="bfill" style="width:'+pct+'%;background:'+t.color+'"></div></div>'
       +'<div style="margin-top:5px;display:flex;align-items:center;gap:5px">'
