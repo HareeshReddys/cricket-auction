@@ -571,12 +571,12 @@ G("regForm").addEventListener("submit",async function(e){
   var eb=G("errBox");eb.style.display="none";eb.innerHTML="";
 
   var name=V("fn"),ch=V("fc"),ph=V("fp"),alt=V("fa");
-  var addr=V("fd"),av=V("fav"),utr=V("fu");
+  var addr=V("fd"),av="",utr=V("fu");
   var pt=document.querySelector("input[name='pt']:checked");
   var agreed=G("fagree").checked;
 
   // Clear reds
-  ["fn","fc","fp","fd","fav","fu"].forEach(function(id){G(id).style.borderColor="";G(id).style.boxShadow="";});
+  ["fn","fc","fp","fd","fu"].forEach(function(id){G(id).style.borderColor="";G(id).style.boxShadow="";});
   document.querySelectorAll(".tc label").forEach(function(l){l.style.borderColor="";l.style.boxShadow="";});
   G("photoBox").style.borderColor="";G("payBox").style.borderColor="";
   var cbr=G("cbRow");if(cbr){cbr.style.borderColor="";cbr.style.background="";}
