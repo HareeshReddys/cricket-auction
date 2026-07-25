@@ -175,16 +175,17 @@ textarea.rinp{width:100%;padding:9px;background:#0d1220;border:1px solid #7f1d1d
 <div id="loginWrap" class="login-wrap">
   <div class="login-box">
     <div style="font-size:52px;margin-bottom:10px">🏏</div>
-    <div style="font-family:'Bebas Neue',cursive;font-size:30px;letter-spacing:3px;color:var(--gold);margin-bottom:4px">CRICKET AUCTION</div>
-    <div style="font-family:'Bebas Neue',cursive;font-size:16px;letter-spacing:2px;color:var(--muted);margin-bottom:20px">ADMIN DASHBOARD</div>
+    <div style="font-family:'Bebas Neue',cursive;font-size:30px;letter-spacing:3px;color:var(--gold);margin-bottom:20px">Friend's 11 Tournament 2026</div>
     <input type="password" id="pwdInp" class="inp" placeholder="Enter admin password" style="margin-bottom:11px" onkeydown="if(event.key==='Enter')doLogin()"/>
-    <button class="btn btn-gold" style="width:100%;font-size:16px;padding:13px" onclick="doLogin()">LOGIN</button>
+    <button class="btn btn-gold" id="loginBtn" style="width:100%;font-size:16px;padding:13px;margin-bottom:10px" onclick="doLogin()">🔐 ADMIN LOGIN</button>
+
     <p id="loginErr" style="color:var(--red);font-size:13px;margin-top:10px;display:none">Wrong password!</p>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app" style="display:none">
+
 
   <div class="hdr">
     <div style="display:flex;align-items:center;gap:8px;padding-right:14px;border-right:1px solid var(--border)">
@@ -407,8 +408,9 @@ textarea.rinp{width:100%;padding:9px;background:#0d1220;border:1px solid #7f1d1d
 
 <script>
 
-var SCRIPT_URL="https://script.google.com/macros/s/AKfycbyO6LJex9kecpVIdnU9iWQ-TDo4NO4vlncUKwO0YZxxZxvjcmXVivfoKnRcSQ7rzt4voQ/exec";
-var ADMIN_PASS="cricket2025";
+var SCRIPT_URL="https://script.google.com/macros/s/AKfycbwljYjCBWdvqpKcg2bocaZJCmdFZVhfiBucAsNeSCgVtxoCOjAlMXKOqvEAAFMI0i1uEQ/exec";
+var ADMIN_PASS="Friends11";
+var isViewMode=false;
 var COLORS=["#FF6B35","#4ECDC4","#FFE66D","#A78BFA","#F472B6","#34D399","#F97316","#60A5FA","#E879F9","#FB923C"];
 var RBC={Batsman:"rBat",Bowler:"rBow","All-Rounder":"rAR","Wicket Keeper":"rWK"};
 var allPlayers=[], auctPlayers=[], teams=[], curFilter="All", roleFilter="All";
@@ -431,23 +433,40 @@ function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove
 
 // ── LOGIN ──
 function doLogin(){
-  if(document.getElementById("pwdInp").value===ADMIN_PASS){
-    document.getElementById("loginWrap").style.display="none";
-    document.getElementById("app").style.display="block";
-    buildColorPicker();loadData();
-  }else{document.getElementById("loginErr").style.display="block";}
+  var pwd = document.getElementById("pwdInp").value;
+  document.getElementById("loginErr").style.display="none";
+  if(pwd===ADMIN_PASS){
+    isViewMode=false;
+    enterApp();
+  }else{
+    document.getElementById("loginErr").style.display="block";
+    document.getElementById("loginErr").textContent="Wrong password!";
+  }
 }
 
-// ── NAVIGATION ──
-function goPage(name,btn){
-  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("on");});
-  document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("on");});
-  document.getElementById("page-"+name).classList.add("on");
-  if(btn)btn.classList.add("on");
-  if(name==="setup"){renderTeamSetup();renderPlayerSetup();renderStartHint();}
-  if(name==="auction"){autoSyncVerified();renderAuction();}
-  if(name==="teams")renderTeams();
-  if(name==="unsold")renderUnsold();
+function enterApp(){
+  document.getElementById("loginWrap").style.display="none";
+  document.getElementById("app").style.display="block";
+  buildColorPicker();
+  loadData();
+}
+
+
+
+// ── PHOTO PREVIEW ──
+function openPhoto(src, name, checkValid){
+  if(!src||!src.startsWith("data:")){
+    notify("⚠ No photo uploaded for " + (name||"this player"));
+    return;
+  }
+  document.getElementById("photoModalImg").src = src;
+  document.getElementById("photoModalName").textContent = name||"Player Photo";
+  var statusEl = document.getElementById("photoModalStatus");
+  var ok = src && src.length > 5000;
+  statusEl.innerHTML = ok
+    ? "<span style='color:var(--green)'>✅ Photo uploaded correctly</span>"
+    : "<span style='color:var(--red)'>⚠️ Photo looks incorrect — ask player to re-upload</span>";
+  document.getElementById("photoModal").classList.add("open");
 }
 
 // ── LOAD DATA ──
@@ -457,7 +476,12 @@ async function loadData(){
     var res=await fetch(SCRIPT_URL+"?action=getAll");
     var data=await res.json();
     if(!data.success)throw new Error(data.error);
-    allPlayers=data.data||[];
+    var freshData=data.data||[];
+    if(freshData.length===0&&allPlayers.length>0){
+      clearAuctionState();auctPlayers=[];teams=[];
+      notify("🆕 New tournament - local data cleared!");
+    }
+    allPlayers=freshData;
     updateAll();
     loadAuctionFromSheet();
   }catch(e){
@@ -465,7 +489,11 @@ async function loadData(){
   }
 }
 
-function updateAll(){updateStats();renderTable();renderRecent();loadAuctionState();autoSyncVerified();updateStats();updateBadges();}
+function updateAll(){
+  updateStats();renderTable();renderRecent();
+  loadAuctionState();autoSyncVerified();
+  updateStats();updateBadges();
+}
 
 function updateStats(){
   var t=allPlayers.length;
@@ -474,8 +502,8 @@ function updateStats(){
   var rej=allPlayers.filter(function(p){return p.Status==="Rejected";}).length;
   var can=allPlayers.filter(function(p){return p.Status==="Cancelled";}).length;
   function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
-  set("ov-total",t);set("ov-pend",pend);set("ov-ver",ver);set("ov-rej",rej);set("ov-can",can);
-  set("ov-teams",teams.length);
+  set("ov-total",t);set("ov-pend",pend);set("ov-ver",ver);
+  set("ov-rej",rej);set("ov-can",can);set("ov-teams",teams.length);
   set("ov-sold",auctPlayers.filter(function(p){return p.status==="sold";}).length);
   set("ov-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
   set("stV",ver);set("stT",t);
@@ -488,22 +516,19 @@ function updateBadges(){
   set("nb-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
 }
 
-// ── PERSIST STATE ──
+// ── AUCTION STATE PERSISTENCE ──
 function saveAuctionState(){
-  // Lightweight state WITHOUT photo - photos come from allPlayers.PhotoURL via autoSyncVerified
-  // This avoids: (1) localStorage quota limit (~5MB), (2) Google Sheet cell limit (50,000 chars)
   var lightState=auctPlayers.map(function(p){
     return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,
       availability:p.availability||"",status:p.status,
-      soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false,
-      comment:p.comment||""};
+      soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,
+      isFree:p.isFree||false,comment:p.comment||""};
   });
   try{
     localStorage.setItem("upl_teams",JSON.stringify(teams));
     localStorage.setItem("upl_auctState",JSON.stringify(lightState));
   }catch(e){
     console.warn("localStorage save failed:",e);
-    // Clear old data so stale state doesn't get re-merged on next load
     try{localStorage.removeItem("upl_auctState");}catch(e2){}
   }
   saveAuctionToSheet(teams,lightState);
@@ -533,11 +558,8 @@ function mergeAuctState(auctState){
           soldPrice:s.soldPrice||0,basePrice:s.basePrice||p.basePrice,
           isFree:s.isFree||false,availability:s.availability||p.availability||"",
           comment:s.comment||p.comment||""});
-        // photo intentionally not touched - comes from autoSyncVerified via PhotoURL
       });
     }else{
-      // Player sold/unsold but not yet in auctPlayers (e.g. from another device)
-      // Try to find photo from allPlayers registration data
       var reg=allPlayers.find(function(x){return x.RegID===s.id;});
       auctPlayers.push({id:s.id,name:s.name||"Player",phone:s.phone||"",
         role:s.role||"Batsman",photo:(reg&&reg.PhotoURL)||"",cricNum:s.cricNum||"",
@@ -572,15 +594,20 @@ function loadAuctionFromSheet(){
         if(exists){
           if(exists.status!==s.status||exists.soldTo!==s.soldTo){
             auctPlayers=auctPlayers.map(function(p){
-              return p.id===s.id?Object.assign({},p,{status:s.status,soldTo:s.soldTo,soldPrice:s.soldPrice,basePrice:s.basePrice,isFree:s.isFree||false}):p;
+              return p.id===s.id?Object.assign({},p,{status:s.status,soldTo:s.soldTo,
+                soldPrice:s.soldPrice,basePrice:s.basePrice,isFree:s.isFree||false}):p;
             });changed=true;
           }
-        }else if(s.status==="sold"||s.status==="unsold"||s.isFree){auctPlayers.push(Object.assign({},s));changed=true;}
+        }else if(s.status==="sold"||s.status==="unsold"||s.isFree){
+          auctPlayers.push(Object.assign({},s));changed=true;
+        }
       });
     }
     if(changed){
       localStorage.setItem("upl_teams",JSON.stringify(teams));
-      var as=auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,photo:p.photo,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};});
+      var as=auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,
+        cricNum:p.cricNum,availability:p.availability||"",status:p.status,
+        soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};});
       localStorage.setItem("upl_auctState",JSON.stringify(as));
       updateStats();updateBadges();renderTeamSetup();renderTeams();renderAuction();renderUnsold();
       notify("✅ Synced! "+teams.length+" teams");
@@ -588,7 +615,6 @@ function loadAuctionFromSheet(){
   }).catch(function(e){notify("⚠ Sync failed");});
 }
 
-// ── AUTO SYNC VERIFIED ──
 function autoSyncVerified(){
   var base=parseInt(document.getElementById("defBase")?document.getElementById("defBase").value:3000)||3000;
   allPlayers.forEach(function(p){
@@ -597,7 +623,7 @@ function autoSyncVerified(){
     if(!already){
       auctPlayers.push({id:p.RegID,name:p.Name||"Unknown",phone:p.Phone||"",
         role:p.PlayerType||"Batsman",photo:p.PhotoURL||"",cricNum:p.CricHeroesNum||"",
-        availability:p.Availability||p.availability||"",basePrice:base,
+        availability:p.Availability||"",basePrice:base,
         status:"pending",soldTo:null,soldPrice:0});
     }else{
       auctPlayers=auctPlayers.map(function(ap){
@@ -616,33 +642,86 @@ function autoSyncVerified(){
   });
 }
 
-// ── RECENT ──
-function renderRecent(){
-  var el=document.getElementById("recentList");if(!el)return;
-  var recent=allPlayers.slice().reverse().slice(0,8);
-  if(!recent.length){el.innerHTML='<div class="empty" style="padding:16px"><p>No registrations yet</p></div>';return;}
-  el.innerHTML='<div style="display:flex;flex-direction:column;gap:6px">'+recent.map(function(p){
-    return '<div style="display:flex;align-items:center;gap:9px;padding:7px 10px;background:#0d1220;border-radius:8px">'
-      +(p.PhotoURL&&p.PhotoURL.startsWith("data:")?'<img src="'+p.PhotoURL+'" style="width:30px;height:30px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--border)"/>'
-        :'<div style="width:30px;height:30px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:13px">🧑</div>')
-      +'<div style="flex:1"><span style="font-weight:700;font-size:13px;color:#f1f5f9">'+esc(p.Name||"—")+'</span>'
-      +' <span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span></div>'
-      +'<span class="sb '+sclass(p.Status)+'">'+sicon(p.Status)+' '+esc(p.Status)+'</span>'
-      +'<div style="display:flex;gap:3px">'
-      +(p.Status!=="Verified"?'<button class="ab aV" onclick="doStatus(\''+p.RegID+'\',\'Verified\')">✅</button>':"")
-      +(p.Status!=="Rejected"?'<button class="ab aR" onclick="openReject(\''+p.RegID+'\')">❌</button>':"")
-      +'</div></div>';
-  }).join('')+'</div>';
+// ── NAVIGATION ──
+function goPage(name,btn){
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("on");});
+  document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("on");});
+  document.getElementById("page-"+name).classList.add("on");
+  if(btn)btn.classList.add("on");
+  if(name==="setup"){renderTeamSetup();renderPlayerSetup();renderStartHint();}
+  if(name==="auction"){autoSyncVerified();renderAuction();}
+  if(name==="teams")renderTeams();
+  if(name==="unsold")renderUnsold();
 }
 
 // ── FILTER ──
 function setFilter(f,el){
   curFilter=f;
   document.querySelectorAll(".fbtn").forEach(function(b){b.classList.remove("on");});
-  el.classList.add("on");renderTable();
+  el.classList.add("on");
+  renderTable();
 }
 
-// ── TABLE ──
+// ── RENDER RECENT ──
+function renderRecent(){
+  var el=document.getElementById("recentList");if(!el)return;
+  var recent=allPlayers.slice().reverse().slice(0,8);
+  if(!recent.length){el.innerHTML='<div class="empty" style="padding:16px"><p>No registrations yet</p></div>';return;}
+  el.innerHTML="";
+  var wrap=document.createElement("div");
+  wrap.style.cssText="display:flex;flex-direction:column;gap:6px";
+  recent.forEach(function(p){
+    var hasPhoto=p.PhotoURL&&p.PhotoURL.startsWith("data:")&&p.PhotoURL.length>1000;
+    var row=document.createElement("div");
+    row.style.cssText="display:flex;align-items:center;gap:9px;padding:7px 10px;background:#0d1220;border-radius:8px";
+    // Photo
+    var photoDiv=document.createElement("div");
+    photoDiv.style.flexShrink="0";
+    if(hasPhoto){
+      var img=document.createElement("img");
+      img.src=p.PhotoURL;
+      img.style.cssText="width:32px;height:32px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--border);cursor:pointer";
+      img.title="View full photo";
+      img.addEventListener("click",function(){openPhoto(p.PhotoURL,p.Name,true);});
+      photoDiv.appendChild(img);
+    } else {
+      photoDiv.innerHTML='<div style="width:32px;height:32px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px">🧑</div>';
+    }
+    row.appendChild(photoDiv);
+    // Info
+    var info=document.createElement("div");
+    info.style.flex="1";
+    info.innerHTML='<span style="font-weight:700;font-size:13px;color:#f1f5f9">'+esc(p.Name||"—")+'</span>'
+      +' <span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span>';
+    row.appendChild(info);
+    // Status
+    var status=document.createElement("span");
+    status.className="sb "+sclass(p.Status);
+    status.textContent=sicon(p.Status)+" "+(p.Status||"Pending");
+    row.appendChild(status);
+    // Buttons
+    var btns=document.createElement("div");
+    btns.style.cssText="display:flex;gap:3px";
+    if(p.Status!=="Verified"){
+      var vBtn=document.createElement("button");
+      vBtn.className="ab aV";vBtn.textContent="✅";
+      vBtn.addEventListener("click",function(){doStatus(p.RegID,"Verified");});
+      btns.appendChild(vBtn);
+    }
+    if(p.Status!=="Rejected"){
+      var rBtn=document.createElement("button");
+      rBtn.className="ab aR";rBtn.textContent="❌";
+      rBtn.addEventListener("click",function(){openReject(p.RegID);});
+      btns.appendChild(rBtn);
+    }
+    row.appendChild(btns);
+    wrap.appendChild(row);
+  });
+  el.appendChild(wrap);
+}
+
+
+// ── RENDER TABLE ──
 function renderTable(){
   var q=(document.getElementById("searchInp")?document.getElementById("searchInp").value||"":"").toLowerCase();
   var rows=allPlayers.filter(function(p){
@@ -650,33 +729,60 @@ function renderTable(){
     var ms=!q||[p.Name,p.CricHeroesNum,p.Phone,p.PlayerType,p.RegID].some(function(v){return v&&String(v).toLowerCase().includes(q);});
     return mf&&ms;
   });
-  if(!rows.length){document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:36px">🏏</div><p>No players found</p></div>';return;}
-  var html='<div class="tw"><table><thead><tr><th>#</th><th>Photo</th><th>Player</th><th>CH No</th><th>Phone</th><th>Type</th><th>Avail</th><th>UTR</th><th>Pay</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+  var el=document.getElementById("tableArea");
+  if(!rows.length){el.innerHTML='<div class="empty"><div style="font-size:36px">🏏</div><p>No players found</p></div>';return;}
+  var html='<div class="tw"><table><thead><tr>'
+    +'<th>#</th><th>Photo</th><th>Player</th><th>CH No</th><th>Phone</th><th>Type</th><th>Avail</th><th>UTR</th><th>Pay</th><th>Date</th><th>Status</th><th>Actions</th>'
+    +'</tr></thead><tbody>';
   rows.forEach(function(p,i){
+    var hasPhoto = p.PhotoURL&&p.PhotoURL.startsWith("data:")&&p.PhotoURL.length>1000;
     html+='<tr>'
       +'<td style="color:var(--muted);font-size:12px">'+(i+1)+'</td>'
-      +'<td>'+(p.PhotoURL&&p.PhotoURL.startsWith("data:")?'<img class="pthumb" src="'+p.PhotoURL+'" onclick="openCrop(\'reg\',\''+p.RegID+'\')" title="Adjust"/>':'<div class="pthumb-ph">🧑</div>')+'</td>'
-      +'<td><div style="font-weight:700;color:#f1f5f9">'+esc(p.Name||"—")+'</div><div style="font-size:11px;color:var(--muted)">'+esc(p.RegID||"")+'</div>'+(p.Address?'<div style="font-size:11px;color:#4b5563">'+esc((p.Address||"").substring(0,24))+(p.Address&&p.Address.length>24?"...":"")+'</div>':"")+'</td>'
+      // PHOTO CELL with 👁 view button
+      +'<td style="text-align:center">'
+        +(hasPhoto
+          ?'<div>'
+            +'<img src="'+p.PhotoURL+'" style="width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:top;border:2px solid var(--green);cursor:pointer;display:block;margin:0 auto 3px" title="View full photo"/>'
+            +'<button style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:10px;font-weight:700;padding:0">👁</button>'
+            +'<span class="edit-photo-btn" data-id="'+p.RegID+'" style="cursor:pointer;color:var(--muted);font-size:10px">✏️</span>'
+            +'</div>'
+          :'<div title="No photo uploaded"><div style="width:38px;height:38px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto">🧑</div>'
+            +'<div style="font-size:9px;color:var(--red);margin-top:2px">No photo</div></div>')
+      +'</td>'
+      +'<td><div style="font-weight:700;color:#f1f5f9">'+esc(p.Name||"—")+'</div><div style="font-size:11px;color:var(--muted)">'+esc(p.RegID||"")+'</div>'+(p.Address?'<div style="font-size:11px;color:#4b5563">'+esc((p.Address||"").substring(0,24))+'</div>':"")+'</td>'
       +'<td style="font-weight:700;color:var(--gold)">'+esc(p.CricHeroesNum||"—")+'</td>'
       +'<td><div>'+esc(p.Phone||"—")+'</div>'+(p.AltPhone?'<div style="font-size:11px;color:var(--muted)">'+esc(p.AltPhone)+'</div>':"")+'</td>'
       +'<td><span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span></td>'
       +'<td style="font-size:11px;color:#60a5fa">'+esc(p.Availability||"—")+'</td>'
       +'<td style="font-family:monospace;font-size:12px;color:var(--gold)">'+esc(p.UTR||"—")+'</td>'
-      +'<td>'+(p.PayScreenshotURL&&p.PayScreenshotURL.startsWith("data:")?'<button class="ab aVw" onclick="viewPay(\''+p.RegID+'\')">🧾</button>':'<span style="color:var(--muted);font-size:11px">—</span>')+'</td>'
+      +'<td>'+(p.PayScreenshotURL&&p.PayScreenshotURL.startsWith("data:")?'<button class="ab aVw" onclick="viewPay(\''+p.RegID+'\')">🧾 View</button>':'<span style="color:var(--muted);font-size:11px">—</span>')+'</td>'
       +'<td style="font-size:11px;color:var(--muted);white-space:nowrap">'+esc((p.Timestamp||"").substring(0,16))+'</td>'
-      +'<td><span class="sb '+sclass(p.Status)+'">'+sicon(p.Status)+' '+(p.Status||"Pending")+'</span>'+(p.RejectionReason?'<div style="font-size:10px;color:#f87171;margin-top:1px">'+esc(p.RejectionReason)+'</div>':"")+'</td>'
+      +'<td><span class="sb '+sclass(p.Status)+'">'+sicon(p.Status)+' '+(p.Status||"Pending")+'</span>'+(p.RejectionReason?'<div style="font-size:10px;color:#f87171">'+esc(p.RejectionReason)+'</div>':"")+'</td>'
       +'<td><div style="display:flex;gap:3px;flex-wrap:wrap">'
-      +(p.Status!=="Verified"?'<button class="ab aV" onclick="doStatus(\''+p.RegID+'\',\'Verified\')">✅</button>':"")
-      +(p.Status!=="Rejected"?'<button class="ab aR" onclick="openReject(\''+p.RegID+'\')">❌</button>':"")
-      +(p.Status!=="Cancelled"?'<button class="ab aC" onclick="doStatus(\''+p.RegID+'\',\'Cancelled\')">🚫</button>':"")
-      +(p.Status!=="Pending"?'<button class="ab aRe" onclick="doStatus(\''+p.RegID+'\',\'Pending\')">🔄</button>':"")
-      +'<button class="ab aVw" onclick="viewPlayer(\''+p.RegID+'\')">👁</button>'
-      +'<button class="ab aPh" onclick="openCrop(\'reg\',\''+p.RegID+'\')">📸</button>'
-      +'<button class="ab aDel" onclick="openDelete(\''+p.RegID+'\')">🗑️</button>'
-      +'</div></td></tr>';
+        +(p.Status!=="Verified"?'<button class="ab aV" onclick="doStatus(\''+p.RegID+'\',\'Verified\')">✅</button>':"")
+        +(p.Status!=="Rejected"?'<button class="ab aR" onclick="openReject(\''+p.RegID+'\')">❌</button>':"")
+        +(p.Status!=="Cancelled"?'<button class="ab aC" onclick="doStatus(\''+p.RegID+'\',\'Cancelled\')">🚫</button>':"")
+        +(p.Status!=="Pending"?'<button class="ab aRe" onclick="doStatus(\''+p.RegID+'\',\'Pending\')">🔄</button>':"")
+        +'<button class="ab aVw" onclick="viewPlayer(\''+p.RegID+'\')">👁</button>'
+        +'<button class="ab aPh" onclick="openCrop(\'reg\',\''+p.RegID+'\')">📸</button>'
+        +'<button class="ab aDel" onclick="openDelete(\''+p.RegID+'\')">🗑️</button>'
+      +'</div></td>'
+    +'</tr>';
   });
   html+='</tbody></table></div>';
-  document.getElementById("tableArea").innerHTML=html;
+  el.innerHTML=html;
+  // Event delegation for photo view/edit in table
+  el.querySelectorAll(".photo-td").forEach(function(td){
+    var regId=td.getAttribute("data-regid");
+    var name=td.getAttribute("data-name");
+    var hasImg=td.getAttribute("data-has")==="1";
+    var img=td.querySelector(".reg-photo-thumb");
+    if(img){img.addEventListener("click",function(){openPhoto(img.src,name,true);});}
+    var viewBtn=td.querySelector(".view-photo-btn");
+    if(viewBtn){viewBtn.addEventListener("click",function(){if(img)openPhoto(img.src,name,true);else notify("⚠ No photo for "+name);});}
+    var editBtn=td.querySelector(".edit-photo-btn");
+    if(editBtn){editBtn.addEventListener("click",function(){openCrop("reg",regId);});}
+  });
 }
 
 // ── STATUS ──
@@ -741,13 +847,16 @@ function viewPlayer(id){
   var p=allPlayers.find(function(x){return x.RegID===id;});if(!p)return;
   document.getElementById("dmTitle").textContent=p.Name||"Player";
   var html='<div style="text-align:center;margin-bottom:13px">'
-    +(p.PhotoURL&&p.PhotoURL.startsWith("data:")?'<img src="'+p.PhotoURL+'" style="width:86px;height:86px;border-radius:50%;object-fit:cover;object-position:top;border:3px solid var(--green);cursor:pointer" onclick="closeM(\'detailModal\');openCrop(\'reg\',\''+p.RegID+'\')" />'
-      +'<div style="font-size:11px;color:var(--blue);margin-top:4px;cursor:pointer" onclick="closeM(\'detailModal\');openCrop(\'reg\',\''+p.RegID+'\')">📸 Adjust</div>'
+    +(p.PhotoURL&&p.PhotoURL.startsWith("data:")?'<img src="'+p.PhotoURL+'" style="width:86px;height:86px;border-radius:50%;object-fit:cover;object-position:top;border:3px solid var(--green);cursor:pointer" onclick="openPhoto(\''+p.PhotoURL+'\',\''+p.Name+'\',true)" title="View full photo"/>'
+      +'<div style="display:flex;gap:8px;justify-content:center;margin-top:7px">'
+      +'<button onclick="openPhoto(\''+p.PhotoURL+'\',\''+p.Name+'\',true)" style="background:var(--card);border:1px solid var(--green);color:var(--green);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">👁 Full View</button>'
+      +'<button onclick="closeM(\'detailModal\');openCrop(\'reg\',\''+p.RegID+'\'" style="background:var(--card);border:1px solid var(--blue);color:var(--blue);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✏️ Adjust</button>'
+      +'</div>'
       :'<div style="width:86px;height:86px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto">🧑</div>')
     +'</div>';
-  [["RegID",p.RegID],["Name",p.Name],["CH #",p.CricHeroesNum],["Phone",p.Phone],
-   ["Alt Phone",p.AltPhone||"—"],["Type",p.PlayerType],["Availability",p.Availability||"—"],
-   ["Address",p.Address],["UTR",p.UTR],["Status",p.Status],["Registered",p.Timestamp]
+  [["RegID",p.RegID],["Name",p.Name],["CH #",p.CricHeroesNum],
+   ["Phone",p.Phone],["Alt Phone",p.AltPhone||"—"],["Type",p.PlayerType],["Availability",p.Availability||"—"],["Address",p.Address],["UTR",p.UTR],
+   ["Status",p.Status],["Registered",p.Timestamp]
   ].forEach(function(row){html+='<div class="irow"><span class="il">'+row[0]+'</span><span class="iv">'+esc(row[1]||"—")+'</span></div>';});
   if(p.PayScreenshotURL&&p.PayScreenshotURL.startsWith("data:"))
     html+='<div style="margin-top:12px"><div style="font-size:10px;color:var(--muted);margin-bottom:5px">PAYMENT</div><img src="'+p.PayScreenshotURL+'" style="max-width:100%;border-radius:8px;border:2px solid var(--gold)"/></div>';
@@ -1119,7 +1228,7 @@ function renderTeams(){
             :'<div style="width:28px;height:28px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🧑</div>')
           +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
           +'<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span class="rb '+rbc(p.role)+'" style="font-size:10px">'+esc(p.role)+'</span>'
-          +(p.phone?'<span style="font-size:10px;color:var(--muted)">'+esc(p.phone)+'</span>':"")
+          +(p.phone&&!isViewMode?'<span style="font-size:10px;color:var(--muted)">'+esc(p.phone)+'</span>':"")
           +(isFree?'<span style="font-size:10px;background:#1e2a4a;color:#60a5fa;padding:1px 6px;border-radius:8px">FREE</span>':"")
           +(p.comment?'<span style="font-size:10px;color:var(--muted)">'+esc(p.comment)+'</span>':"")
           +'</div></div>'
@@ -1179,7 +1288,7 @@ function renderUnsold(){
         :'<div style="width:42px;height:42px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🧑</div>')
       +'<div style="flex:1;min-width:0"><div style="font-weight:700;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
       +'<span class="rb '+rbc(p.role)+'">'+esc(p.role)+'</span>'
-      +(p.phone?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(p.phone)+'</div>':"")
+      +(p.phone&&!isViewMode?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(p.phone)+'</div>':"")
       +'<div style="font-size:12px;color:var(--muted);margin-top:2px">Base: '+fmt(p.basePrice)+'</div></div>'
       +'<span style="background:#7f1d1d;color:#fca5a5;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;flex-shrink:0">UNSOLD</span></div>'
       +'<button onclick="resetAP(\''+p.id+'\')" style="width:100%;padding:7px;background:#1e2a4a;border:1px solid #2d3f6e;color:#94a3b8;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700">🔄 Re-enter Auction</button>'
@@ -1281,7 +1390,7 @@ function downloadTeamExcel(teamId){
   var tp=auctPlayers.filter(function(p){return p.soldTo===teamId;});
   var spent=t.initialBudget-t.budget;
   var rows=[];
-  rows.push(["UPL Season 1 2026 - "+t.name]);
+  rows.push(["Friend's 11 Tournament 2026 - "+t.name]);
   rows.push([]);
   rows.push(["Team","Budget","Spent","Remaining","Total Players"]);
   rows.push([t.name,t.initialBudget,spent,t.budget,tp.length]);
@@ -1290,12 +1399,12 @@ function downloadTeamExcel(teamId){
   tp.forEach(function(p,i){rows.push([i+1,p.name,p.cricNum||"",p.phone||"",p.role,p.isFree?"FREE":p.soldPrice,p.isFree?"Free":"Auction",p.availability||""]);});
   rows.push([]);rows.push(["Total Spent",spent]);rows.push(["Remaining Budget",t.budget]);
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
-  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="UPL_"+t.name.replace(/\s+/g,"_")+".csv";a.click();
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="Friends11_"+t.name.replace(/\s+/g,"_")+".csv";a.click();
   notify("📥 Downloaded "+t.name);
 }
 
 function downloadAllTeams(){
-  var rows=[["UPL Season 1 2026 - All Teams"]];
+  var rows=[["Friend's 11 Tournament 2026 - All Teams"]];
   teams.forEach(function(t){
     var tp=auctPlayers.filter(function(p){return p.soldTo===t.id;});
     var spent=t.initialBudget-t.budget;
@@ -1305,7 +1414,7 @@ function downloadAllTeams(){
     tp.forEach(function(p,i){rows.push([i+1,p.name,p.cricNum||"",p.phone||"",p.role,p.isFree?"FREE":p.soldPrice,p.isFree?"Free":"Auction"]);});
   });
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
-  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="UPL_All_Teams.csv";a.click();
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="Friends11_All_Teams.csv";a.click();
   notify("📥 All teams downloaded!");
 }
 
@@ -1422,5 +1531,17 @@ document.addEventListener("click",function(e){
 </div>
 
 <div class="notif" id="notif"></div>
+
+<!-- FULL PHOTO MODAL -->
+<div class="overlay" id="photoModal" style="cursor:pointer" onclick="closeM('photoModal')">
+  <div style="position:relative;max-width:340px;width:90%;margin:auto;top:50%;transform:translateY(-50%)" onclick="event.stopPropagation()">
+    <div style="background:#111827;border:2px solid var(--green);border-radius:16px;padding:18px;text-align:center">
+      <div style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;color:var(--green);margin-bottom:12px" id="photoModalName">Player Photo</div>
+      <img id="photoModalImg" style="width:100%;max-width:280px;height:280px;border-radius:12px;object-fit:cover;object-position:top;border:3px solid var(--green);box-shadow:0 0 30px rgba(34,197,94,.3)"/>
+      <div id="photoModalStatus" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
+      <button onclick="closeM('photoModal')" style="margin-top:12px;padding:8px 24px;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">✕ Close</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
