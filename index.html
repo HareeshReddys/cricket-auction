@@ -114,7 +114,7 @@ tr:hover td{background:#0d1624}
 .pcard:hover{border-color:#3b82f655}
 .pc-img{width:90px;height:110px;border-radius:8px;object-fit:cover;border:2px solid var(--green);display:block;margin:0 auto 9px;box-shadow:0 0 14px #22c55e33;cursor:pointer}
 .pc-ph{width:90px;height:110px;border-radius:8px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 9px;cursor:pointer}
-.edit-pin{position:absolute;width:20px;height:20px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;border:2px solid var(--card2);cursor:pointer;top:48px;left:calc(50% + 18px)}
+
 
 /* TEAM CARDS */
 .tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:13px}
@@ -151,7 +151,7 @@ textarea.rinp{width:100%;padding:9px;background:#0d1220;border:1px solid #7f1d1d
 .crop-wrap{position:relative;width:100%;height:270px;overflow:hidden;background:#000;border-radius:10px;cursor:grab;touch-action:none;user-select:none}
 .crop-wrap:active{cursor:grabbing}
 .crop-img{position:absolute;left:0;width:100%;pointer-events:none}
-.crop-circle{position:absolute;left:50%;transform:translateX(-50%);border:3px solid var(--green);border-radius:50%;width:174px;height:174px;pointer-events:none;box-shadow:0 0 0 9999px rgba(0,0,0,.65)}
+
 
 /* BID MODAL */
 .bpc{background:#0d1324;border-radius:12px;padding:15px;margin-bottom:15px;text-align:center}
@@ -348,206 +348,103 @@ textarea.rinp{width:100%;padding:9px;background:#0d1220;border:1px solid #7f1d1d
 <div class="overlay" id="deleteModal"><div class="modal" style="max-width:350px"><div class="mhdr"><h3>Delete Player</h3><button class="xbtn" onclick="closeM('deleteModal')">✕</button></div><div class="del-box"><div style="color:#fca5a5;font-weight:700;margin-bottom:4px">Cannot be undone!</div><div id="delName" style="font-size:16px;color:#f8fafc;font-weight:800"></div></div><div style="display:flex;gap:9px"><button class="btn aDel" onclick="confirmDelete()" style="flex:1;padding:10px;font-size:14px">Delete</button><button class="btn btn-ghost" onclick="closeM('deleteModal')" style="flex:1;padding:10px">Cancel</button></div></div></div>
 <div class="overlay" id="payModal"><div class="modal" style="max-width:400px;text-align:center"><div class="mhdr"><h3 id="payTitle">Payment</h3><button class="xbtn" onclick="closeM('payModal')">✕</button></div><img id="payImg" style="max-width:100%;border-radius:10px;border:2px solid var(--gold)"/><div id="payUTR" style="margin-top:9px;font-size:13px;color:var(--muted)"></div></div></div>
 
-<!-- CROP MODAL -->
-<div class="overlay" id="cropModal">
-  <div class="modal" style="max-width:390px">
-    <div class="mhdr"><h3>Adjust Photo</h3><button class="xbtn" onclick="closeCrop()">✕</button></div>
-    <p style="font-size:13px;color:var(--muted);margin-bottom:9px">Drag up/down to show face. Zoom to fit.</p>
-    <div class="crop-wrap" id="cropWrap"><img id="cropImg" class="crop-img" draggable="false"/><div class="crop-circle"></div></div>
-    <div style="display:flex;align-items:center;gap:9px;margin-top:9px">
-      <span style="font-size:12px;color:var(--muted)">Zoom</span>
-      <input type="range" id="zoomSlider" min="100" max="300" value="100" style="flex:1" oninput="onZoom(this.value)"/>
-      <span id="zoomVal" style="font-size:12px;color:var(--gold);min-width:32px">1.0x</span>
-    </div>
-    <div style="display:flex;gap:9px;margin-top:11px">
-      <button class="btn btn-g" onclick="saveCrop()" style="flex:1">Save</button>
-      <label class="btn btn-b" style="flex:1;display:flex;align-items:center;justify-content:center;cursor:pointer">Upload New<input type="file" accept="image/*" id="newPhotoInp" onchange="handleNewPhoto(event)" style="display:none"/></label>
-      <button class="btn btn-ghost" onclick="closeCrop()" style="flex:1">Cancel</button>
+<!-- FULL PHOTO MODAL -->
+<div class="overlay" id="photoModal" style="cursor:pointer" onclick="closeM('photoModal')">
+  <div style="position:relative;max-width:340px;width:90%;margin:auto;top:50%;transform:translateY(-50%)" onclick="event.stopPropagation()">
+    <div style="background:#111827;border:2px solid var(--green);border-radius:16px;padding:18px;text-align:center">
+      <div style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;color:var(--green);margin-bottom:12px" id="photoModalName">Player Photo</div>
+      <img id="photoModalImg" style="width:100%;max-width:280px;border-radius:12px;object-fit:contain;border:3px solid var(--green);box-shadow:0 0 30px rgba(34,197,94,.3)"/>
+      <div id="photoModalStatus" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
+      <button onclick="closeM('photoModal')" style="margin-top:12px;padding:8px 24px;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">✕ Close</button>
     </div>
   </div>
 </div>
-
-<!-- BID MODAL -->
-<div class="overlay" id="bidModal" style="background:rgba(0,0,0,.92)">
-  <div class="modal" style="max-width:560px;padding:28px">
-    <div class="mhdr"><h3 style="font-size:24px;letter-spacing:3px">🔨 LIVE AUCTION</h3><button class="xbtn" onclick="closeM('bidModal')" style="font-size:26px">✕</button></div>
-    <div class="bpc" style="padding:20px;border-radius:14px">
-      <div style="position:relative;width:120px;margin:0 auto 12px">
-        <div id="bidPhotoWrap"></div>
-        <div class="edit-pin" style="top:88px;left:72px" onclick="openCropFromBid()">✏️</div>
-      </div>
-      <div id="bidName" style="font-size:26px;font-weight:800;color:#f8fafc"></div>
-      <div id="bidCricNum" style="font-size:14px;color:var(--muted);margin-top:3px"></div>
-      <div id="bidRole" style="margin-top:6px"></div>
-      <div id="bidAvail" style="margin-top:6px;display:none">
-        <span style="background:#1e2a4a;color:#60a5fa;padding:3px 12px;border-radius:20px;font-size:13px;font-weight:700"></span>
-      </div>
-      <div id="bidPhone" style="font-size:13px;color:var(--muted);margin-top:4px"></div>
-      <div style="margin-top:8px;font-size:15px;color:var(--muted)">Base Price: <span id="bidBase" style="color:var(--gold);font-weight:800;font-size:18px"></span></div>
-    </div>
-    <div style="margin-bottom:15px">
-      <label class="lbl" style="font-size:13px">💰 FINAL BID AMOUNT ₹</label>
-      <input type="number" id="bidInp" class="inp" style="font-size:32px;font-weight:800;text-align:center;color:#34d399;padding:16px;letter-spacing:2px" oninput="checkBid()"/>
-      <div id="bidWarn" style="color:var(--red);font-size:13px;margin-top:4px;display:none">⚠ Below base price</div>
-    </div>
-    <div id="bidActions">
-      <div style="display:flex;gap:9px">
-        <button class="btn" onclick="handleSold()" style="flex:1;padding:18px;background:#065f46;border:2px solid #10b981;color:#34d399;font-size:22px;font-family:'Bebas Neue',cursive;letter-spacing:2px">✅ SOLD</button>
-        <button class="btn" onclick="handleUnsold()" style="flex:1;padding:18px;background:#7f1d1d;border:2px solid var(--red);color:#fca5a5;font-size:22px;font-family:'Bebas Neue',cursive;letter-spacing:2px">❌ UNSOLD</button>
-      </div>
-    </div>
-    <div id="teamPickWrap" style="display:none">
-      <div id="teamPickLabel" style="font-size:13px;color:var(--muted);margin-bottom:9px"></div>
-      <div class="tpg" id="teamPickGrid"></div>
-      <button class="btn btn-ghost" onclick="showBidActions()" style="width:100%;margin-top:9px;padding:7px;font-size:13px">Back</button>
-    </div>
-  </div>
-</div>
-
-<div class="notif" id="notif"></div>
-
 <script>
-
 var SCRIPT_URL="https://script.google.com/macros/s/AKfycbxKfonfhhwEaFtXo-DrWLT73XFs3ZVc4l_ylZ8koc2M35mG9vkqE246sThJuCJNKcEFVQ/exec";
 var ADMIN_PASS="Friends11";
-var isViewMode=false;
 var COLORS=["#FF6B35","#4ECDC4","#FFE66D","#A78BFA","#F472B6","#34D399","#F97316","#60A5FA","#E879F9","#FB923C"];
 var RBC={Batsman:"rBat",Bowler:"rBow","All-Rounder":"rAR","Wicket Keeper":"rWK"};
-var allPlayers=[], auctPlayers=[], teams=[], curFilter="All", roleFilter="All";
-var rejectTarget=null, deleteTarget=null, selColor=COLORS[0], bidPlayer=null;
-var cropTarget=null, cropX=0, cropY=0, cropZoom=1, croppedNW=0, croppedNH=0;
-var cropDragging=false, cropLastX=0, cropLastY=0, initDist=0, initZoom=1;
-var WRAP_H=270, CIRCLE_D=174;
-var unsoldTimer=null;
+var allPlayers=[],auctPlayers=[],teams=[],curFilter="All",roleFilter="All";
+var rejectTarget=null,deleteTarget=null,selColor=COLORS[0],bidPlayer=null;
 var freeSelectedPlayer=null;
 var confettiTimer=null,confettiInterval=null,unsoldTimer=null;
 
-// ── UTILS ──
 function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
-function fmt(n){return "\u20B9"+Number(n).toLocaleString("en-IN");}
+function fmt(n){return "₹"+Number(n).toLocaleString("en-IN");}
 function rbc(r){return RBC[r]||"rBat";}
 function sclass(s){return {Pending:"sP",Verified:"sV",Rejected:"sR",Cancelled:"sC"}[s]||"sP";}
 function sicon(s){return {Pending:"⏳",Verified:"✅",Rejected:"❌",Cancelled:"🚫"}[s]||"⏳";}
 function notify(m){var el=document.getElementById("notif");if(!el)return;el.textContent=m;el.style.display="block";setTimeout(function(){el.style.display="none";},3000);}
 function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove("open");}
 
-// ── LOGIN ──
+// LOGIN
 function doLogin(){
-  var pwd = document.getElementById("pwdInp").value;
-  document.getElementById("loginErr").style.display="none";
+  var pwd=document.getElementById("pwdInp").value;
   if(pwd===ADMIN_PASS){
-    isViewMode=false;
-    enterApp();
+    document.getElementById("loginWrap").style.display="none";
+    document.getElementById("app").style.display="block";
+    buildColorPicker();loadData();
   }else{
     document.getElementById("loginErr").style.display="block";
     document.getElementById("loginErr").textContent="Wrong password!";
   }
 }
 
-function enterApp(){
-  document.getElementById("loginWrap").style.display="none";
-  document.getElementById("app").style.display="block";
-  buildColorPicker();
-  loadData();
+// NAVIGATION
+function goPage(name,btn){
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("on");});
+  document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("on");});
+  document.getElementById("page-"+name).classList.add("on");
+  if(btn)btn.classList.add("on");
+  if(name==="setup"){renderTeamSetup();renderPlayerSetup();renderStartHint();}
+  if(name==="auction"){autoSyncVerified();renderAuction();}
+  if(name==="teams")renderTeams();
+  if(name==="unsold")renderUnsold();
 }
 
+// HARD RESET
+function hardReset(){
+  if(!confirm("Clear all local auction data and reload?\nRegistrations will NOT be deleted."))return;
+  try{localStorage.removeItem("upl_teams");localStorage.removeItem("upl_auctState");}catch(e){}
+  teams=[];auctPlayers=[];
+  notify("🗑 Cache cleared! Reloading...");
+  setTimeout(function(){location.reload();},1000);
+}
 
-
-// ── PHOTO PREVIEW ──
-function openPhoto(src, name, checkValid){
-  if(!src||!src.startsWith("data:")){
-    notify("⚠ No photo uploaded for " + (name||"this player"));
-    return;
-  }
-  document.getElementById("photoModalImg").src = src;
-  document.getElementById("photoModalName").textContent = name||"Player Photo";
-  var statusEl = document.getElementById("photoModalStatus");
-  var ok = src && src.length > 5000;
-  statusEl.innerHTML = ok
-    ? "<span style='color:var(--green)'>✅ Photo uploaded correctly</span>"
-    : "<span style='color:var(--red)'>⚠️ Photo looks incorrect — ask player to re-upload</span>";
+// PHOTO PREVIEW
+function openPhoto(src,name,checkValid){
+  if(!src||!src.startsWith("data:")){notify("⚠ No photo for "+(name||"this player"));return;}
+  document.getElementById("photoModalImg").src=src;
+  document.getElementById("photoModalName").textContent=name||"Player Photo";
+  var ok=src&&src.length>5000;
+  document.getElementById("photoModalStatus").innerHTML=ok
+    ?"<span style='color:var(--green)'>✅ Photo uploaded correctly</span>"
+    :"<span style='color:var(--red)'>⚠️ Photo looks incorrect</span>";
   document.getElementById("photoModal").classList.add("open");
 }
 
-// ── LOAD DATA ──
-async function loadData(){
-  document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⏳</div><p>Loading...</p></div>';
-  try{
-    var res=await fetch(SCRIPT_URL+"?action=getAll");
-    var data=await res.json();
-    if(!data.success)throw new Error(data.error);
-    var freshData=data.data||[];
-    if(freshData.length===0&&allPlayers.length>0){
-      clearAuctionState();auctPlayers=[];teams=[];
-      notify("🆕 New tournament - local data cleared!");
-    }
-    allPlayers=freshData;
-    updateAll();
-    loadAuctionFromSheet();
-  }catch(e){
-    document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⚠️</div><p style="color:var(--red)">'+esc(e.message)+'</p></div>';
-  }
-}
-
-function updateAll(){
-  updateStats();renderTable();renderRecent();
-  loadAuctionState();autoSyncVerified();
-  updateStats();updateBadges();
-}
-
-function updateStats(){
-  var t=allPlayers.length;
-  var pend=allPlayers.filter(function(p){return p.Status==="Pending";}).length;
-  var ver=allPlayers.filter(function(p){return p.Status==="Verified";}).length;
-  var rej=allPlayers.filter(function(p){return p.Status==="Rejected";}).length;
-  var can=allPlayers.filter(function(p){return p.Status==="Cancelled";}).length;
-  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
-  set("ov-total",t);set("ov-pend",pend);set("ov-ver",ver);
-  set("ov-rej",rej);set("ov-can",can);set("ov-teams",teams.length);
-  set("ov-sold",auctPlayers.filter(function(p){return p.status==="sold";}).length);
-  set("ov-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
-  set("stV",ver);set("stT",t);
-}
-
-function updateBadges(){
-  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
-  set("nb-reg",allPlayers.filter(function(p){return p.Status==="Pending";}).length);
-  set("nb-pend",auctPlayers.filter(function(p){return p.status==="pending";}).length);
-  set("nb-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
-}
-
-// ── AUCTION STATE PERSISTENCE ──
+// AUCTION STATE
 function saveAuctionState(){
   var lightState=auctPlayers.map(function(p){
     return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,
-      availability:p.availability||"",status:p.status,
-      soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,
-      isFree:p.isFree||false,comment:p.comment||""};
+      availability:p.availability||"",status:p.status,soldTo:p.soldTo,
+      soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false,comment:p.comment||""};
   });
   try{
     localStorage.setItem("upl_teams",JSON.stringify(teams));
     localStorage.setItem("upl_auctState",JSON.stringify(lightState));
-  }catch(e){
-    console.warn("localStorage save failed:",e);
-    try{localStorage.removeItem("upl_auctState");}catch(e2){}
-  }
+  }catch(e){try{localStorage.removeItem("upl_auctState");}catch(e2){}}
   saveAuctionToSheet(teams,lightState);
 }
-
-function saveAuctionToSheet(teamsData,auctStateData){
-  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"saveAuction",teams:teamsData,auctState:auctStateData})})
-  .catch(function(e){console.warn("Sheet save failed:",e);});
+function saveAuctionToSheet(t,a){
+  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"saveAuction",teams:t,auctState:a})}).catch(function(){});
 }
-
 function loadAuctionState(){
   try{
-    var savedTeams=localStorage.getItem("upl_teams");
-    if(savedTeams)teams=JSON.parse(savedTeams);
-    var savedAuct=localStorage.getItem("upl_auctState");
-    if(savedAuct)mergeAuctState(JSON.parse(savedAuct));
-  }catch(e){console.warn("loadAuctionState error:",e);}
+    var t=localStorage.getItem("upl_teams");if(t)teams=JSON.parse(t);
+    var a=localStorage.getItem("upl_auctState");if(a)mergeAuctState(JSON.parse(a));
+  }catch(e){console.warn(e);}
 }
-
 function mergeAuctState(auctState){
   auctState.forEach(function(s){
     var exists=auctPlayers.find(function(p){return p.id===s.id;});
@@ -556,8 +453,7 @@ function mergeAuctState(auctState){
         if(p.id!==s.id)return p;
         return Object.assign({},p,{status:s.status||"pending",soldTo:s.soldTo||null,
           soldPrice:s.soldPrice||0,basePrice:s.basePrice||p.basePrice,
-          isFree:s.isFree||false,availability:s.availability||p.availability||"",
-          comment:s.comment||p.comment||""});
+          isFree:s.isFree||false,comment:s.comment||p.comment||""});
       });
     }else{
       var reg=allPlayers.find(function(x){return x.RegID===s.id;});
@@ -569,11 +465,9 @@ function mergeAuctState(auctState){
     }
   });
 }
-
 function clearAuctionState(){
   try{localStorage.removeItem("upl_teams");localStorage.removeItem("upl_auctState");}catch(e){}
 }
-
 function loadAuctionFromSheet(){
   notify("📡 Syncing...");
   fetch(SCRIPT_URL+"?action=loadAuction")
@@ -583,38 +477,31 @@ function loadAuctionFromSheet(){
     var changed=false;
     if(data.teams&&data.teams.length){
       data.teams.forEach(function(st){
-        var exists=teams.find(function(t){return t.id===st.id;});
-        if(!exists){teams.push(st);changed=true;}
-        else if(exists.budget!==st.budget){teams=teams.map(function(t){return t.id===st.id?st:t;});changed=true;}
+        var ex=teams.find(function(t){return t.id===st.id;});
+        if(!ex){teams.push(st);changed=true;}
+        else if(ex.budget!==st.budget){teams=teams.map(function(t){return t.id===st.id?st:t;});changed=true;}
       });
     }
     if(data.auctState&&data.auctState.length){
       data.auctState.forEach(function(s){
-        var exists=auctPlayers.find(function(p){return p.id===s.id;});
-        if(exists){
-          if(exists.status!==s.status||exists.soldTo!==s.soldTo){
-            auctPlayers=auctPlayers.map(function(p){
-              return p.id===s.id?Object.assign({},p,{status:s.status,soldTo:s.soldTo,
-                soldPrice:s.soldPrice,basePrice:s.basePrice,isFree:s.isFree||false}):p;
-            });changed=true;
+        var ex=auctPlayers.find(function(p){return p.id===s.id;});
+        if(ex){
+          if(ex.status!==s.status||ex.soldTo!==s.soldTo){
+            auctPlayers=auctPlayers.map(function(p){return p.id===s.id?Object.assign({},p,{status:s.status,soldTo:s.soldTo,soldPrice:s.soldPrice,basePrice:s.basePrice,isFree:s.isFree||false}):p;});
+            changed=true;
           }
-        }else if(s.status==="sold"||s.status==="unsold"||s.isFree){
-          auctPlayers.push(Object.assign({},s));changed=true;
-        }
+        }else if(s.status==="sold"||s.status==="unsold"||s.isFree){auctPlayers.push(Object.assign({},s));changed=true;}
       });
     }
     if(changed){
       localStorage.setItem("upl_teams",JSON.stringify(teams));
-      var as=auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,
-        cricNum:p.cricNum,availability:p.availability||"",status:p.status,
-        soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};});
+      var as=auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};});
       localStorage.setItem("upl_auctState",JSON.stringify(as));
       updateStats();updateBadges();renderTeamSetup();renderTeams();renderAuction();renderUnsold();
       notify("✅ Synced! "+teams.length+" teams");
     }else{notify("✅ Up to date");}
-  }).catch(function(e){notify("⚠ Sync failed");});
+  }).catch(function(){notify("⚠ Sync failed");});
 }
-
 function autoSyncVerified(){
   var base=parseInt(document.getElementById("defBase")?document.getElementById("defBase").value:3000)||3000;
   allPlayers.forEach(function(p){
@@ -623,8 +510,7 @@ function autoSyncVerified(){
     if(!already){
       auctPlayers.push({id:p.RegID,name:p.Name||"Unknown",phone:p.Phone||"",
         role:p.PlayerType||"Batsman",photo:p.PhotoURL||"",cricNum:p.CricHeroesNum||"",
-        availability:p.Availability||"",basePrice:base,
-        status:"pending",soldTo:null,soldPrice:0});
+        availability:p.Availability||"",basePrice:base,status:"pending",soldTo:null,soldPrice:0});
     }else{
       auctPlayers=auctPlayers.map(function(ap){
         if(ap.id!==p.RegID)return ap;
@@ -642,27 +528,53 @@ function autoSyncVerified(){
   });
 }
 
-// ── NAVIGATION ──
-function goPage(name,btn){
-  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("on");});
-  document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("on");});
-  document.getElementById("page-"+name).classList.add("on");
-  if(btn)btn.classList.add("on");
-  if(name==="setup"){renderTeamSetup();renderPlayerSetup();renderStartHint();}
-  if(name==="auction"){autoSyncVerified();renderAuction();}
-  if(name==="teams")renderTeams();
-  if(name==="unsold")renderUnsold();
+// LOAD DATA
+async function loadData(){
+  document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⏳</div><p>Loading...</p></div>';
+  try{
+    var res=await fetch(SCRIPT_URL+"?action=getAll");
+    var data=await res.json();
+    if(!data.success)throw new Error(data.error);
+    var freshData=data.data||[];
+    if(freshData.length===0){
+      clearAuctionState();auctPlayers=[];teams=[];
+      notify("🆕 Fresh sheet — cleared local cache");
+    }
+    allPlayers=freshData;
+    updateAll();loadAuctionFromSheet();
+  }catch(e){
+    document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⚠️</div><p style="color:var(--red)">'+esc(e.message)+'</p></div>';
+  }
+}
+function updateAll(){updateStats();renderTable();renderRecent();loadAuctionState();autoSyncVerified();updateStats();updateBadges();}
+function updateStats(){
+  var t=allPlayers.length;
+  var pend=allPlayers.filter(function(p){return p.Status==="Pending";}).length;
+  var ver=allPlayers.filter(function(p){return p.Status==="Verified";}).length;
+  var rej=allPlayers.filter(function(p){return p.Status==="Rejected";}).length;
+  var can=allPlayers.filter(function(p){return p.Status==="Cancelled";}).length;
+  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+  set("ov-total",t);set("ov-pend",pend);set("ov-ver",ver);set("ov-rej",rej);set("ov-can",can);
+  set("ov-teams",teams.length);
+  set("ov-sold",auctPlayers.filter(function(p){return p.status==="sold";}).length);
+  set("ov-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
+  set("stV",ver);set("stT",t);
+}
+function updateBadges(){
+  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+  set("nb-reg",allPlayers.filter(function(p){return p.Status==="Pending";}).length);
+  set("nb-pend",auctPlayers.filter(function(p){return p.status==="pending";}).length);
+  set("nb-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
 }
 
-// ── FILTER ──
+// FILTER
 function setFilter(f,el){
   curFilter=f;
   document.querySelectorAll(".fbtn").forEach(function(b){b.classList.remove("on");});
-  el.classList.add("on");
-  renderTable();
+  el.classList.add("on");renderTable();
 }
 
-// ── RENDER RECENT ──
+// RENDER RECENT
 function renderRecent(){
   var el=document.getElementById("recentList");if(!el)return;
   var recent=allPlayers.slice().reverse().slice(0,8);
@@ -674,54 +586,35 @@ function renderRecent(){
     var hasPhoto=p.PhotoURL&&p.PhotoURL.startsWith("data:")&&p.PhotoURL.length>1000;
     var row=document.createElement("div");
     row.style.cssText="display:flex;align-items:center;gap:9px;padding:7px 10px;background:#0d1220;border-radius:8px";
-    // Photo
-    var photoDiv=document.createElement("div");
-    photoDiv.style.flexShrink="0";
+    var photoDiv=document.createElement("div");photoDiv.style.flexShrink="0";
     if(hasPhoto){
       var img=document.createElement("img");
       img.src=p.PhotoURL;
       img.style.cssText="width:32px;height:40px;border-radius:4px;object-fit:cover;border:2px solid var(--border);cursor:pointer";
-      img.title="View full photo";
+      img.title="View photo";
       img.addEventListener("click",function(){openPhoto(p.PhotoURL,p.Name,true);});
       photoDiv.appendChild(img);
-    } else {
-      photoDiv.innerHTML='<div style="width:32px;height:32px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px">🧑</div>';
+    }else{
+      photoDiv.innerHTML='<div style="width:32px;height:40px;border-radius:4px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px">🧑</div>';
     }
     row.appendChild(photoDiv);
-    // Info
-    var info=document.createElement("div");
-    info.style.flex="1";
-    info.innerHTML='<span style="font-weight:700;font-size:13px;color:#f1f5f9">'+esc(p.Name||"—")+'</span>'
-      +' <span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span>';
+    var info=document.createElement("div");info.style.flex="1";
+    info.innerHTML='<span style="font-weight:700;font-size:13px;color:#f1f5f9">'+esc(p.Name||"—")+'</span> <span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span>';
     row.appendChild(info);
-    // Status
     var status=document.createElement("span");
     status.className="sb "+sclass(p.Status);
     status.textContent=sicon(p.Status)+" "+(p.Status||"Pending");
     row.appendChild(status);
-    // Buttons
-    var btns=document.createElement("div");
-    btns.style.cssText="display:flex;gap:3px";
-    if(p.Status!=="Verified"){
-      var vBtn=document.createElement("button");
-      vBtn.className="ab aV";vBtn.textContent="✅";
-      vBtn.addEventListener("click",function(){doStatus(p.RegID,"Verified");});
-      btns.appendChild(vBtn);
-    }
-    if(p.Status!=="Rejected"){
-      var rBtn=document.createElement("button");
-      rBtn.className="ab aR";rBtn.textContent="❌";
-      rBtn.addEventListener("click",function(){openReject(p.RegID);});
-      btns.appendChild(rBtn);
-    }
+    var btns=document.createElement("div");btns.style.cssText="display:flex;gap:3px";
+    if(p.Status!=="Verified"){var vb=document.createElement("button");vb.className="ab aV";vb.textContent="✅";vb.addEventListener("click",function(){doStatus(p.RegID,"Verified");});btns.appendChild(vb);}
+    if(p.Status!=="Rejected"){var rb=document.createElement("button");rb.className="ab aR";rb.textContent="❌";rb.addEventListener("click",function(){openReject(p.RegID);});btns.appendChild(rb);}
     row.appendChild(btns);
     wrap.appendChild(row);
   });
   el.appendChild(wrap);
 }
 
-
-// ── RENDER TABLE ──
+// RENDER TABLE
 function renderTable(){
   var q=(document.getElementById("searchInp")?document.getElementById("searchInp").value||"":"").toLowerCase();
   var rows=allPlayers.filter(function(p){
@@ -731,31 +624,24 @@ function renderTable(){
   });
   var el=document.getElementById("tableArea");
   if(!rows.length){el.innerHTML='<div class="empty"><div style="font-size:36px">🏏</div><p>No players found</p></div>';return;}
-  var html='<div class="tw"><table><thead><tr>'
-    +'<th>#</th><th>Photo</th><th>Player</th><th>CH No</th><th>Phone</th><th>Type</th><th>Avail</th><th>UTR</th><th>Pay</th><th>Date</th><th>Status</th><th>Actions</th>'
-    +'</tr></thead><tbody>';
+  var html='<div class="tw"><table><thead><tr><th>#</th><th>Photo</th><th>Player</th><th>CH No</th><th>Phone</th><th>Type</th><th>UTR</th><th>Pay</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
   rows.forEach(function(p,i){
-    var hasPhoto = p.PhotoURL&&p.PhotoURL.startsWith("data:")&&p.PhotoURL.length>1000;
+    var hasPhoto=p.PhotoURL&&p.PhotoURL.startsWith("data:")&&p.PhotoURL.length>1000;
     html+='<tr>'
       +'<td style="color:var(--muted);font-size:12px">'+(i+1)+'</td>'
-      // PHOTO CELL with 👁 view button
-      +'<td style="text-align:center">'
+      +'<td style="text-align:center" class="photo-td" data-regid="'+p.RegID+'" data-name="'+esc(p.Name)+'">'
         +(hasPhoto
-          ?'<div>'
-            +'<img src="'+p.PhotoURL+'" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid var(--green);cursor:pointer;display:block;margin:0 auto 3px" title="View full photo"/>'
-            +'<button style="background:none;border:none;color:var(--blue);cursor:pointer;font-size:10px;font-weight:700;padding:0">👁</button>'
-            +'<span class="edit-photo-btn" data-id="'+p.RegID+'" style="cursor:pointer;color:var(--muted);font-size:10px">✏️</span>'
-            +'</div>'
-          :'<div title="No photo uploaded"><div style="width:38px;height:38px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto">🧑</div>'
+          ?'<img src="'+p.PhotoURL+'" class="reg-photo-thumb" style="width:38px;height:48px;border-radius:5px;object-fit:cover;border:2px solid var(--green);cursor:pointer;display:block;margin:0 auto 3px" title="View photo"/>'
+            +'<div><span class="view-photo-btn" style="cursor:pointer;color:var(--blue);font-size:10px;font-weight:700">👁</span></div>'
+          :'<div title="No photo"><div style="width:38px;height:48px;border-radius:5px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto">🧑</div>'
             +'<div style="font-size:9px;color:var(--red);margin-top:2px">No photo</div></div>')
       +'</td>'
-      +'<td><div style="font-weight:700;color:#f1f5f9">'+esc(p.Name||"—")+'</div><div style="font-size:11px;color:var(--muted)">'+esc(p.RegID||"")+'</div>'+(p.Address?'<div style="font-size:11px;color:#4b5563">'+esc((p.Address||"").substring(0,24))+'</div>':"")+'</td>'
+      +'<td><div style="font-weight:700;color:#f1f5f9">'+esc(p.Name||"—")+'</div><div style="font-size:11px;color:var(--muted)">'+esc(p.RegID||"")+'</div></td>'
       +'<td style="font-weight:700;color:var(--gold)">'+esc(p.CricHeroesNum||"—")+'</td>'
       +'<td><div>'+esc(p.Phone||"—")+'</div>'+(p.AltPhone?'<div style="font-size:11px;color:var(--muted)">'+esc(p.AltPhone)+'</div>':"")+'</td>'
       +'<td><span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span></td>'
-      +'<td style="font-size:11px;color:#60a5fa">'+esc(p.Availability||"—")+'</td>'
       +'<td style="font-family:monospace;font-size:12px;color:var(--gold)">'+esc(p.UTR||"—")+'</td>'
-      +'<td>'+(p.PayScreenshotURL&&p.PayScreenshotURL.startsWith("data:")?'<button class="ab aVw" onclick="viewPay(\''+p.RegID+'\')">🧾 View</button>':'<span style="color:var(--muted);font-size:11px">—</span>')+'</td>'
+      +'<td>'+(p.PayScreenshotURL&&p.PayScreenshotURL.startsWith("data:")?'<button class="ab aVw" onclick="viewPay(\''+p.RegID+'\')">🧾</button>':'<span style="color:var(--muted);font-size:11px">—</span>')+'</td>'
       +'<td style="font-size:11px;color:var(--muted);white-space:nowrap">'+esc((p.Timestamp||"").substring(0,16))+'</td>'
       +'<td><span class="sb '+sclass(p.Status)+'">'+sicon(p.Status)+' '+(p.Status||"Pending")+'</span>'+(p.RejectionReason?'<div style="font-size:10px;color:#f87171">'+esc(p.RejectionReason)+'</div>':"")+'</td>'
       +'<td><div style="display:flex;gap:3px;flex-wrap:wrap">'
@@ -764,28 +650,22 @@ function renderTable(){
         +(p.Status!=="Cancelled"?'<button class="ab aC" onclick="doStatus(\''+p.RegID+'\',\'Cancelled\')">🚫</button>':"")
         +(p.Status!=="Pending"?'<button class="ab aRe" onclick="doStatus(\''+p.RegID+'\',\'Pending\')">🔄</button>':"")
         +'<button class="ab aVw" onclick="viewPlayer(\''+p.RegID+'\')">👁</button>'
-        +'<button class="ab aPh" onclick="openCrop(\'reg\',\''+p.RegID+'\')">📸</button>'
         +'<button class="ab aDel" onclick="openDelete(\''+p.RegID+'\')">🗑️</button>'
       +'</div></td>'
     +'</tr>';
   });
   html+='</tbody></table></div>';
   el.innerHTML=html;
-  // Event delegation for photo view/edit in table
   el.querySelectorAll(".photo-td").forEach(function(td){
-    var regId=td.getAttribute("data-regid");
     var name=td.getAttribute("data-name");
-    var hasImg=td.getAttribute("data-has")==="1";
     var img=td.querySelector(".reg-photo-thumb");
     if(img){img.addEventListener("click",function(){openPhoto(img.src,name,true);});}
-    var viewBtn=td.querySelector(".view-photo-btn");
-    if(viewBtn){viewBtn.addEventListener("click",function(){if(img)openPhoto(img.src,name,true);else notify("⚠ No photo for "+name);});}
-    var editBtn=td.querySelector(".edit-photo-btn");
-    if(editBtn){editBtn.addEventListener("click",function(){openCrop("reg",regId);});}
+    var vb=td.querySelector(".view-photo-btn");
+    if(vb){vb.addEventListener("click",function(){if(img)openPhoto(img.src,name,true);else notify("⚠ No photo for "+name);});}
   });
 }
 
-// ── STATUS ──
+// STATUS
 async function doStatus(regId,status,reason){
   reason=reason||"";
   var p=allPlayers.find(function(x){return x.RegID===regId;});if(!p)return;
@@ -810,7 +690,6 @@ async function doStatus(regId,status,reason){
     else notify(sicon(status)+" "+p.Name+" — "+status);
   }catch(e){p.Status=orig;updateAll();alert("Error: "+e.message);}
 }
-
 function openReject(id){rejectTarget=id;document.getElementById("rejectReason").value="";document.getElementById("rejectModal").classList.add("open");}
 function closeRM(){closeM("rejectModal");rejectTarget=null;}
 function confirmReject(){var r=document.getElementById("rejectReason").value.trim();closeM("rejectModal");if(rejectTarget)doStatus(rejectTarget,"Rejected",r);rejectTarget=null;}
@@ -820,43 +699,28 @@ function confirmDelete(){
   if(!deleteTarget)return;
   var regId=deleteTarget;
   var pName=(allPlayers.find(function(p){return p.RegID===regId;})||{}).Name||"Player";
-  // Remove from memory
   allPlayers=allPlayers.filter(function(p){return p.RegID!==regId;});
   auctPlayers=auctPlayers.filter(function(p){return p.id!==regId;});
-  // Remove from localStorage auction state
-  try{
-    var savedAuct=localStorage.getItem("upl_auctState");
-    if(savedAuct){
-      var auctState=JSON.parse(savedAuct).filter(function(p){return p.id!==regId;});
-      localStorage.setItem("upl_auctState",JSON.stringify(auctState));
-    }
-  }catch(e){}
-  closeDel();updateAll();
-  // Save updated auction state to sheet (removes deleted player from sheet state too)
-  saveAuctionState();
-  notify("🗑️ "+pName+" deleted!");
-  deleteTarget=null;
-  // Delete from Google Sheet registrations
-  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deletePlayer",regId:regId})})
-  .then(function(r){return r.json();})
-  .then(function(d){if(!d.success)notify("⚠ Sheet delete failed: "+(d.error||""));})
-  .catch(function(){notify("⚠ Sheet connection failed");});
+  try{var sa=localStorage.getItem("upl_auctState");if(sa){var as=JSON.parse(sa).filter(function(p){return p.id!==regId;});localStorage.setItem("upl_auctState",JSON.stringify(as));}}catch(e){}
+  closeDel();updateAll();saveAuctionState();notify("🗑️ "+pName+" deleted!");deleteTarget=null;
+  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deletePlayer",regId:regId})}).catch(function(){});
 }
-
 function viewPlayer(id){
   var p=allPlayers.find(function(x){return x.RegID===id;});if(!p)return;
   document.getElementById("dmTitle").textContent=p.Name||"Player";
+  var hasPhoto=p.PhotoURL&&p.PhotoURL.startsWith("data:")&&p.PhotoURL.length>1000;
   var html='<div style="text-align:center;margin-bottom:13px">'
-    +(p.PhotoURL&&p.PhotoURL.startsWith("data:")?'<img src="'+p.PhotoURL+'" style="width:86px;height:110px;border-radius:8px;object-fit:cover;border:3px solid var(--green);cursor:pointer" onclick="openPhoto(\''+p.PhotoURL+'\',\''+p.Name+'\',true)" title="View full photo"/>'
-      +'<div style="display:flex;gap:8px;justify-content:center;margin-top:7px">'
-      +'<button onclick="openPhoto(\''+p.PhotoURL+'\',\''+p.Name+'\',true)" style="background:var(--card);border:1px solid var(--green);color:var(--green);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">👁 Full View</button>'
-      +'<button onclick="closeM(\'detailModal\');openCrop(\'reg\',\''+p.RegID+'\'" style="background:var(--card);border:1px solid var(--blue);color:var(--blue);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">✏️ Adjust</button>'
-      +'</div>'
-      :'<div style="width:86px;height:86px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto">🧑</div>')
+    +(hasPhoto
+      ?'<img src="'+p.PhotoURL+'" style="width:120px;border-radius:8px;object-fit:cover;border:3px solid var(--green);cursor:pointer" onclick="openPhoto(\''+p.PhotoURL+'\',\''+p.Name+'\',true)"/>'
+        +'<div style="display:flex;gap:8px;justify-content:center;margin-top:7px">'
+        +'<button onclick="openPhoto(\''+p.PhotoURL+'\',\''+p.Name+'\',true)" style="background:var(--card);border:1px solid var(--green);color:var(--green);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">👁 View Photo</button>'
+        +'</div>'
+      :'<div style="width:80px;height:100px;border-radius:8px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto">🧑</div>'
+        +'<div style="font-size:11px;color:var(--red);margin-top:4px">No photo uploaded</div>')
     +'</div>';
-  [["RegID",p.RegID],["Name",p.Name],["CH #",p.CricHeroesNum],
-   ["Phone",p.Phone],["Alt Phone",p.AltPhone||"—"],["Type",p.PlayerType],["Availability",p.Availability||"—"],["Address",p.Address],["UTR",p.UTR],
-   ["Status",p.Status],["Registered",p.Timestamp]
+  [["RegID",p.RegID],["Name",p.Name],["CH #",p.CricHeroesNum],["Phone",p.Phone],
+   ["Alt Phone",p.AltPhone||"—"],["Type",p.PlayerType],["Address",p.Address],
+   ["UTR",p.UTR],["Status",p.Status],["Registered",p.Timestamp]
   ].forEach(function(row){html+='<div class="irow"><span class="il">'+row[0]+'</span><span class="iv">'+esc(row[1]||"—")+'</span></div>';});
   if(p.PayScreenshotURL&&p.PayScreenshotURL.startsWith("data:"))
     html+='<div style="margin-top:12px"><div style="font-size:10px;color:var(--muted);margin-bottom:5px">PAYMENT</div><img src="'+p.PayScreenshotURL+'" style="max-width:100%;border-radius:8px;border:2px solid var(--gold)"/></div>';
@@ -868,7 +732,6 @@ function viewPlayer(id){
   document.getElementById("dmBody").innerHTML=html;
   document.getElementById("detailModal").classList.add("open");
 }
-
 function viewPay(id){
   var p=allPlayers.find(function(x){return x.RegID===id;});if(!p)return;
   document.getElementById("payTitle").textContent="Payment — "+p.Name;
@@ -877,95 +740,7 @@ function viewPay(id){
   document.getElementById("payModal").classList.add("open");
 }
 
-// ── CROP ──
-function openCrop(type,id){
-  var photo="";
-  if(type==="reg"){var p=allPlayers.find(function(x){return x.RegID===id;});if(!p||!p.PhotoURL||!p.PhotoURL.startsWith("data:")){notify("⚠ No photo");return;}photo=p.PhotoURL;}
-  else{var p=auctPlayers.find(function(x){return x.id===id;});if(!p||!p.photo||!p.photo.startsWith("data:")){notify("⚠ No photo");return;}photo=p.photo;}
-  cropTarget={type:type,id:id};cropX=0;cropY=0;cropZoom=1;cropDragging=false;croppedNW=0;croppedNH=0;
-  document.getElementById("zoomSlider").value=100;document.getElementById("zoomVal").textContent="1.0x";
-  var img=document.getElementById("cropImg");
-  img.onload=function(){
-    croppedNW=img.naturalWidth;croppedNH=img.naturalHeight;
-    var ww=document.getElementById("cropWrap").offsetWidth;
-    var scaledH=croppedNH*(ww/croppedNW);
-    cropX=0;cropY=(WRAP_H-scaledH)/2;applyCrop();
-  };
-  img.src=photo;
-  document.getElementById("cropModal").classList.add("open");
-}
-
-function openCropFromBid(){if(!bidPlayer)return;closeM("bidModal");openCrop("auct",bidPlayer.id);}
-
-function applyCrop(){
-  var img=document.getElementById("cropImg"),wrap=document.getElementById("cropWrap");
-  if(!img||!wrap||!croppedNW)return;
-  var ww=wrap.offsetWidth,sw=ww*cropZoom,sh=croppedNH*sw/croppedNW;
-  var cx=(ww-CIRCLE_D)/2,cy=(WRAP_H-CIRCLE_D)/2;
-  if(sw>=CIRCLE_D)cropX=Math.min(cx,Math.max(cx+CIRCLE_D-sw,cropX));
-  if(sh>=CIRCLE_D)cropY=Math.min(cy,Math.max(cy+CIRCLE_D-sh,cropY));
-  img.style.width=sw+"px";img.style.height=sh+"px";img.style.left=cropX+"px";img.style.top=cropY+"px";
-}
-
-function onZoom(val){cropZoom=val/100;document.getElementById("zoomVal").textContent=cropZoom.toFixed(1)+"x";applyCrop();}
-
-function saveCrop(){
-  if(!cropTarget)return;
-  var img=document.getElementById("cropImg"),wrap=document.getElementById("cropWrap");
-  var ww=wrap.offsetWidth,sw=ww*cropZoom,sh=croppedNH*sw/croppedNW;
-  var cx=(ww-CIRCLE_D)/2,cy=(WRAP_H-CIRCLE_D)/2;
-  var sx=(cx-cropX)/sw*croppedNW,sy=(cy-cropY)/sh*croppedNH,sd=CIRCLE_D/sw*croppedNW;
-  var c=document.createElement("canvas");c.width=300;c.height=300;
-  var ctx=c.getContext("2d");ctx.beginPath();ctx.arc(150,150,150,0,Math.PI*2);ctx.clip();
-  ctx.drawImage(img,sx,sy,sd,sd,0,0,300,300);
-  var cropped=c.toDataURL("image/jpeg",.88);
-  if(cropTarget.type==="reg"){
-    var p=allPlayers.find(function(x){return x.RegID===cropTarget.id;});
-    if(p)p.PhotoURL=cropped;
-    auctPlayers=auctPlayers.map(function(ap){return ap.id===cropTarget.id?Object.assign({},ap,{photo:cropped}):ap;});
-    fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",regId:cropTarget.id,status:p?p.Status:"Verified",photo:cropped,verifiedBy:"Admin"})}).catch(function(){});
-    renderTable();renderRecent();renderAuction();
-  }else{
-    auctPlayers=auctPlayers.map(function(ap){return ap.id===cropTarget.id?Object.assign({},ap,{photo:cropped}):ap;});
-    // Also update registration sheet so photo syncs cross-device
-    var rp=allPlayers.find(function(x){return x.RegID===cropTarget.id;});
-    if(rp)rp.PhotoURL=cropped;
-    fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",regId:cropTarget.id,status:rp?rp.Status:"Verified",photo:cropped,verifiedBy:"Admin"})}).catch(function(){});
-    saveAuctionState();renderAuction();renderTeams();
-  }
-  closeCrop();notify("📸 Photo saved!");
-}
-
-function closeCrop(){closeM("cropModal");cropTarget=null;cropX=0;cropY=0;cropZoom=1;croppedNW=0;croppedNH=0;}
-
-function handleNewPhoto(e){
-  var file=e.target.files[0];if(!file)return;
-  var r=new FileReader();r.onload=function(ev){
-    var img=document.getElementById("cropImg");
-    img.onload=function(){croppedNW=img.naturalWidth;croppedNH=img.naturalHeight;var ww=document.getElementById("cropWrap").offsetWidth;var scaledH=croppedNH*(ww/croppedNW);cropX=0;cropY=(WRAP_H-scaledH)/2;cropZoom=1;document.getElementById("zoomSlider").value=100;document.getElementById("zoomVal").textContent="1.0x";applyCrop();};
-    img.src=ev.target.result;
-  };r.readAsDataURL(file);
-}
-
-// Crop drag
-var CW=document.getElementById("cropWrap");
-if(CW){
-  CW.addEventListener("mousedown",function(e){cropDragging=true;cropLastX=e.clientX;cropLastY=e.clientY;CW.style.cursor="grabbing";e.preventDefault();});
-  window.addEventListener("mousemove",function(e){if(!cropDragging)return;cropX+=e.clientX-cropLastX;cropY+=e.clientY-cropLastY;cropLastX=e.clientX;cropLastY=e.clientY;applyCrop();});
-  window.addEventListener("mouseup",function(){cropDragging=false;if(CW)CW.style.cursor="grab";});
-  CW.addEventListener("touchstart",function(e){
-    if(e.touches.length===1){cropLastX=e.touches[0].clientX;cropLastY=e.touches[0].clientY;}
-    if(e.touches.length===2){initDist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);initZoom=cropZoom;}
-    e.preventDefault();
-  },{passive:false});
-  CW.addEventListener("touchmove",function(e){
-    if(e.touches.length===1){cropX+=e.touches[0].clientX-cropLastX;cropY+=e.touches[0].clientY-cropLastY;cropLastX=e.touches[0].clientX;cropLastY=e.touches[0].clientY;applyCrop();}
-    if(e.touches.length===2){var d=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);cropZoom=Math.min(3,Math.max(1,d/initDist*initZoom));document.getElementById("zoomSlider").value=Math.round(cropZoom*100);document.getElementById("zoomVal").textContent=cropZoom.toFixed(1)+"x";applyCrop();}
-    e.preventDefault();
-  },{passive:false});
-}
-
-// ── SETUP ──
+// SETUP
 function buildColorPicker(){
   document.getElementById("colorPick").innerHTML=COLORS.map(function(c,i){
     return '<div class="cdot'+(i===0?" sel":"")+'" style="background:'+c+'" onclick="pickColor(\''+c+'\',this)"></div>';
@@ -973,7 +748,6 @@ function buildColorPicker(){
 }
 function isLight(hex){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return(r*299+g*587+b*114)/1000>128;}
 function pickColor(c,el){selColor=c;document.querySelectorAll(".cdot").forEach(function(d){d.classList.remove("sel");});el.classList.add("sel");var btn=document.getElementById("addTeamBtn");btn.style.background=c;btn.style.color=isLight(c)?"#000":"#fff";}
-
 async function loadPlayers(){
   var btn=document.getElementById("loadBtn"),msg=document.getElementById("loadMsg");
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Loading...';
@@ -998,31 +772,28 @@ async function loadPlayers(){
   }catch(e){msg.style.color="var(--red)";msg.textContent=e.message;}
   btn.disabled=false;btn.innerHTML="📥 Load";
 }
-
 function applyAllBase(){
   var base=parseInt(document.getElementById("defBase").value)||3000;
   auctPlayers=auctPlayers.map(function(p){return p.status==="pending"?Object.assign({},p,{basePrice:base}):p;});
   renderPlayerSetup();
 }
 function setBase(id,val){auctPlayers=auctPlayers.map(function(p){return p.id===id?Object.assign({},p,{basePrice:parseInt(val)||3000}):p;});}
-
 function renderPlayerSetup(){
   var el=document.getElementById("playerSetupList");if(!el)return;
   if(!auctPlayers.length){el.innerHTML="";return;}
   el.innerHTML=auctPlayers.filter(function(p){return p.status==="pending";}).map(function(p){
+    var hasPhoto=p.photo&&p.photo.startsWith("data:");
     return '<div class="prow">'
-      +(p.photo&&p.photo.startsWith("data:")?'<img src="'+p.photo+'" style="width:34px;height:44px;border-radius:5px;object-fit:cover;border:2px solid var(--green);cursor:pointer;flex-shrink:0" onclick="openCrop(\'auct\',\''+p.id+'\')" />'
-        :'<div style="width:34px;height:34px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:2px dashed #2d4a52;cursor:pointer" onclick="openCrop(\'auct\',\''+p.id+'\')">🧑</div>')
+      +(hasPhoto
+        ?'<img src="'+p.photo+'" style="width:34px;height:44px;border-radius:5px;object-fit:cover;border:2px solid var(--green);flex-shrink:0" onclick="openPhoto(\''+p.photo+'\',\''+p.name+'\',false)"/>'
+        :'<div style="width:34px;height:44px;border-radius:5px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🧑</div>')
       +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px;color:#f1f5f9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
-      +'<span class="rb '+rbc(p.role)+'" style="font-size:10px">'+esc(p.role)+'</span>'
-      +(p.availability?'<span style="font-size:10px;color:#60a5fa;margin-left:4px">'+esc(p.availability)+'</span>':"")
-      +'</div>'
+      +'<span class="rb '+rbc(p.role)+'" style="font-size:10px">'+esc(p.role)+'</span></div>'
       +'<div style="display:flex;align-items:center;gap:4px"><span style="color:var(--gold);font-size:12px">₹</span>'
       +'<input class="pinp" type="number" value="'+p.basePrice+'" onchange="setBase(\''+p.id+'\',this.value)"/></div>'
-      +'<button onclick="openCrop(\'auct\',\''+p.id+'\')" class="ab aPh" title="Edit">📸</button></div>';
+      +'</div>';
   }).join("");
 }
-
 function addTeam(){
   var name=document.getElementById("tName").value.trim();if(!name)return;
   var budget=parseInt(document.getElementById("tBudget").value)||100000;
@@ -1032,7 +803,6 @@ function addTeam(){
   notify("🏆 Team '"+name+"' added!");
 }
 function removeTeam(id){teams=teams.filter(function(t){return t.id!==id;});saveAuctionState();renderTeamSetup();renderStartHint();updateStats();}
-
 function renderTeamSetup(){
   var el=document.getElementById("teamSetupList");if(!el)return;
   if(!teams.length){el.innerHTML='<div class="empty" style="padding:18px"><div style="font-size:30px">🏆</div><p>No teams yet</p></div>';return;}
@@ -1044,7 +814,6 @@ function renderTeamSetup(){
       +'<button onclick="removeTeam(\''+t.id+'\')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px">✕</button></div>';
   }).join("")+'</div>';
 }
-
 function renderStartHint(){
   var ok=teams.length>=2&&auctPlayers.length>0;
   document.getElementById("startWrap").style.display=ok?"block":"none";
@@ -1053,80 +822,88 @@ function renderStartHint(){
   if(teams.length<2)h.push("Add at least 2 teams");
   document.getElementById("startHint").textContent=h.join(" · ");
 }
-
 function exportTeams(){
   if(!teams.length){notify("⚠ No teams");return;}
-  var data=JSON.stringify({teams:teams,auctState:auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,photo:p.photo,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};})});
+  var data=JSON.stringify({teams:teams,auctState:auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};})});
   var code=btoa(unescape(encodeURIComponent(data)));
   navigator.clipboard.writeText(code).then(function(){notify("✅ Copied! Share with friend");}).catch(function(){prompt("Copy this code:",code);});
 }
-
 function importTeams(){
-  var code=prompt("Paste the teams code:");
-  if(!code||!code.trim())return;
+  var code=prompt("Paste the teams code:");if(!code||!code.trim())return;
   try{
     var data=JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
     if(data.teams){teams=data.teams;if(data.auctState)mergeAuctState(data.auctState);saveAuctionState();updateAll();renderTeamSetup();renderStartHint();notify("✅ Teams imported!");}
     else alert("Invalid code.");
   }catch(e){alert("Invalid code format.");}
 }
-
 function resetFullAuction(){
-  if(!confirm("Reset ALL auction data? Cannot be undone!"))return;
+  if(!confirm("Reset ALL auction data? Teams and sold/unsold will be cleared.\nThis cannot be undone!"))return;
+  // Reset all player statuses
   auctPlayers=auctPlayers.map(function(p){return Object.assign({},p,{status:"pending",soldTo:null,soldPrice:0});});
+  // Remove free-added players
   auctPlayers=auctPlayers.filter(function(p){return !p.isFree;});
-  teams=[];clearAuctionState();updateAll();renderTeamSetup();renderStartHint();notify("✅ Reset done!");
+  // Clear teams
+  teams=[];
+  // Clear localStorage immediately
+  try{
+    localStorage.removeItem("upl_teams");
+    localStorage.removeItem("upl_auctState");
+  }catch(e){}
+  // Save empty state to Google Sheet so sync doesn't restore old data
+  saveAuctionToSheet([],[]);
+  updateAll();renderTeamSetup();renderStartHint();
+  notify("✅ Auction reset! All data cleared from sheet too.");
 }
 
-// ── ROLE FILTER ──
+// ROLE FILTER
 function setRole(r,btn){
   roleFilter=r;
   document.querySelectorAll(".rf-btn").forEach(function(b){b.classList.remove("on");});
   btn.classList.add("on");renderAuction();
 }
 
-// ── AUCTION ──
+// AUCTION
 function renderAuction(){
   var sq=(document.getElementById("auctionSearch")?document.getElementById("auctionSearch").value||"":"").toLowerCase().trim();
-  function matchSearch(p){if(!sq)return true;return [p.name,p.phone,p.cricNum,p.role].some(function(v){return v&&String(v).toLowerCase().includes(sq);});}
-  var pending=auctPlayers.filter(function(p){return p.status==="pending"&&(roleFilter==="All"||p.role===roleFilter)&&matchSearch(p);});
-  var sold=auctPlayers.filter(function(p){return p.status==="sold"&&matchSearch(p);});
+  function ms(p){if(!sq)return true;return [p.name,p.phone,p.cricNum,p.role].some(function(v){return v&&String(v).toLowerCase().includes(sq);});}
+  var pending=auctPlayers.filter(function(p){return p.status==="pending"&&(roleFilter==="All"||p.role===roleFilter)&&ms(p);});
+  var sold=auctPlayers.filter(function(p){return p.status==="sold"&&ms(p);});
   var allPending=auctPlayers.filter(function(p){return p.status==="pending";});
-
   var warnEl=document.getElementById("auctionWarn");
   if(warnEl){
-    var verifiedCount=allPlayers.filter(function(p){return p.Status==="Verified";}).length;
-    if(verifiedCount===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">⚠ No verified players yet. Go to <b>Registrations</b> → click ✅ Verify.</div>';
-    else if(auctPlayers.length===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">'+verifiedCount+' verified players. Go to <b>⚙️ Setup</b> → click 📥 Load.</div>';
+    var vc=allPlayers.filter(function(p){return p.Status==="Verified";}).length;
+    if(vc===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">⚠ No verified players yet. Go to <b>Registrations</b> → click ✅ Verify.</div>';
+    else if(auctPlayers.length===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">'+vc+' verified players. Go to <b>⚙️ Setup</b> → click 📥 Load.</div>';
     else if(teams.length===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">⚠ No teams yet. Go to <b>⚙️ Setup</b> to add teams.</div>';
     else warnEl.innerHTML="";
   }
-
   var pc=document.getElementById("pendCount");if(pc)pc.textContent=pending.length+(sq?" found":"")+"/"+allPending.length+" players";
-
   var soldEl=document.getElementById("soldSection");
   if(sold.length){
     var sh='<div class="sec"><span>✅</span><span class="sec-t">Sold — '+sold.length+'</span><div class="sec-l"></div></div><div class="sold-grid">';
     sold.forEach(function(p){
       var team=teams.find(function(t){return t.id===p.soldTo;});
+      var hasPhoto=p.photo&&p.photo.startsWith("data:");
       sh+='<div class="sold-card">'
-        +(p.photo&&p.photo.startsWith("data:")?'<img src="'+p.photo+'" style="width:30px;height:38px;border-radius:4px;object-fit:cover"/>':'<div style="width:30px;height:30px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:13px">🧑</div>')
+        +(hasPhoto?'<img src="'+p.photo+'" style="width:30px;height:38px;border-radius:4px;object-fit:cover;cursor:pointer" onclick="openPhoto(\''+p.photo+'\',\''+p.name+'\',false)"/>'
+          :'<div style="width:30px;height:38px;border-radius:4px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:13px">🧑</div>')
         +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
-        +'<div style="font-size:11px"><span style="color:#34d399;font-weight:800">'+fmt(p.soldPrice)+'</span> <span style="color:var(--muted)">→</span> <span style="color:'+(team?team.color:"#94a3b8")+';font-weight:700">'+esc(team?team.name:"?")+'</span></div></div>'
+        +'<div style="font-size:11px"><span style="color:#34d399;font-weight:800">'+fmt(p.soldPrice)+'</span> → <span style="color:'+(team?team.color:"#94a3b8")+';font-weight:700">'+esc(team?team.name:"?")+'</span></div></div>'
         +'<button onclick="resetAP(\''+p.id+'\')" style="background:none;border:1px solid #374151;color:#6b7280;border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">↩</button></div>';
     });
     sh+='</div>';soldEl.innerHTML=sh;
   }else{soldEl.innerHTML="";}
-
   var pendEl=document.getElementById("pendingGrid");
   if(!pending.length){pendEl.innerHTML='<div class="empty" style="grid-column:1/-1"><div style="font-size:36px">🎉</div><p>All auctioned!</p></div>';updateBadges();return;}
   var ph="";
   pending.forEach(function(p){
+    var hasPhoto=p.photo&&p.photo.startsWith("data:");
     ph+='<div class="pcard">'
-      +'<div style="position:relative;width:68px;margin:0 auto">'
-      +(p.photo&&p.photo.startsWith("data:")?'<img class="pc-img" src="'+p.photo+'" onclick="openCrop(\'auct\',\''+p.id+'\')" title="Edit"/>'
-        :'<div class="pc-ph" onclick="openCrop(\'auct\',\''+p.id+'\')">🧑</div>')
-      +'<div class="edit-pin" onclick="openCrop(\'auct\',\''+p.id+'\')">✏️</div></div>'
+      +'<div style="position:relative;width:90px;margin:0 auto">'
+      +(hasPhoto
+        ?'<img class="pc-img" src="'+p.photo+'" onclick="openPhoto(\''+p.photo+'\',\''+p.name+'\',false)" title="View photo"/>'
+        :'<div class="pc-ph">🧑</div>')
+      +'</div>'
       +'<div style="font-weight:800;font-size:14px;color:#f8fafc;text-align:center;margin-top:4px">'+esc(p.name)+'</div>'
       +'<div style="font-size:11px;color:var(--muted);text-align:center">'+esc(p.cricNum)+'</div>'
       +'<div style="text-align:center;margin-top:5px"><span class="rb '+rbc(p.role)+'" style="font-size:12px">'+esc(p.role)+'</span></div>'
@@ -1137,7 +914,7 @@ function renderAuction(){
   pendEl.innerHTML=ph;updateBadges();
 }
 
-// ── BID ──
+// BID
 function openBid(id){
   bidPlayer=auctPlayers.find(function(p){return p.id===id;});if(!bidPlayer)return;
   document.getElementById("bidName").textContent=bidPlayer.name;
@@ -1149,21 +926,18 @@ function openBid(id){
   var availEl=document.getElementById("bidAvail");
   if(availEl){if(bidPlayer.availability){availEl.style.display="block";availEl.querySelector("span").textContent="📅 "+bidPlayer.availability;}else availEl.style.display="none";}
   var phoneEl=document.getElementById("bidPhone");if(phoneEl)phoneEl.textContent=bidPlayer.phone?"📱 "+bidPlayer.phone:"";
-  renderBidPhoto();showBidActions();
+  var pw=document.getElementById("bidPhotoWrap");
+  if(pw){
+    if(bidPlayer.photo&&bidPlayer.photo.startsWith("data:"))
+      pw.innerHTML='<img src="'+bidPlayer.photo+'" style="width:120px;height:150px;border-radius:10px;object-fit:cover;border:3px solid #22c55e;cursor:pointer" onclick="openPhoto(\''+bidPlayer.photo+'\',\''+bidPlayer.name+'\',false)" title="View full photo"/>';
+    else
+      pw.innerHTML='<div style="width:120px;height:150px;border-radius:10px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:48px;border:3px dashed #2d4a52">🧑</div>';
+  }
+  showBidActions();
   document.getElementById("bidModal").classList.add("open");
 }
-
-function renderBidPhoto(){
-  var el=document.getElementById("bidPhotoWrap");
-  if(bidPlayer.photo&&bidPlayer.photo.startsWith("data:"))
-    el.innerHTML='<img src="'+bidPlayer.photo+'" style="width:120px;height:150px;border-radius:10px;object-fit:cover;border:3px solid #22c55e;box-shadow:0 0 24px #22c55e44"/>';
-  else
-    el.innerHTML='<div style="width:120px;height:120px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:48px;border:4px dashed #2d4a52">🧑</div>';
-}
-
 function checkBid(){document.getElementById("bidWarn").style.display=bidPlayer&&parseInt(document.getElementById("bidInp").value)<bidPlayer.basePrice?"block":"none";}
 function showBidActions(){document.getElementById("bidActions").style.display="block";document.getElementById("teamPickWrap").style.display="none";}
-
 function handleSold(){
   document.getElementById("bidActions").style.display="none";document.getElementById("teamPickWrap").style.display="block";
   var price=parseInt(document.getElementById("bidInp").value)||bidPlayer.basePrice;
@@ -1176,14 +950,12 @@ function handleSold(){
   });
   document.getElementById("teamPickGrid").innerHTML=g;
 }
-
 function handleUnsold(){
   var pName=bidPlayer.name;
   auctPlayers=auctPlayers.map(function(p){return p.id===bidPlayer.id?Object.assign({},p,{status:"unsold"}):p;});
   closeM("bidModal");bidPlayer=null;saveAuctionState();updateAll();renderAuction();
   showUnsoldStamp(pName);
 }
-
 function assignTeam(teamId){
   var price=parseInt(document.getElementById("bidInp").value)||bidPlayer.basePrice;
   var pName=bidPlayer.name,pRole=bidPlayer.role;
@@ -1193,7 +965,6 @@ function assignTeam(teamId){
   closeM("bidModal");bidPlayer=null;saveAuctionState();updateAll();renderAuction();renderTeams();
   showSoldCelebration(pName,pRole,price,team.name,team.color);
 }
-
 function resetAP(id){
   var p=auctPlayers.find(function(x){return x.id===id;});if(!p)return;
   if(p.status==="sold")teams=teams.map(function(t){return t.id===p.soldTo?Object.assign({},t,{budget:t.budget+p.soldPrice}):t;});
@@ -1201,7 +972,7 @@ function resetAP(id){
   saveAuctionState();updateAll();renderAuction();renderTeams();renderUnsold();
 }
 
-// ── TEAMS ──
+// TEAMS
 function renderTeams(){
   var el=document.getElementById("teamsGrid");
   if(!teams.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><div style="font-size:36px">🏆</div><p>No teams. Add in Setup.</p></div>';return;}
@@ -1223,44 +994,36 @@ function renderTeams(){
     else{
       tp.forEach(function(p){
         var isFree=!!p.isFree;
+        var hasPhoto=p.photo&&p.photo.startsWith("data:");
         rows+='<div style="display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--border)">'
-          +(p.photo&&p.photo.startsWith("data:")?'<img src="'+p.photo+'" style="width:28px;height:36px;border-radius:4px;object-fit:cover;flex-shrink:0"/>'
-            :'<div style="width:28px;height:28px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🧑</div>')
+          +(hasPhoto?'<img src="'+p.photo+'" style="width:28px;height:36px;border-radius:4px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="openPhoto(\''+p.photo+'\',\''+p.name+'\',false)" title="View photo"/>'
+            :'<div style="width:28px;height:36px;border-radius:4px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🧑</div>')
           +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
-          +'<div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap"><span class="rb '+rbc(p.role)+'" style="font-size:10px">'+esc(p.role)+'</span>'
-          +(p.phone&&!isViewMode?'<span style="font-size:10px;color:var(--muted)">'+esc(p.phone)+'</span>':"")
-          +(isFree?'<span style="font-size:10px;background:#1e2a4a;color:#60a5fa;padding:1px 6px;border-radius:8px">FREE</span>':"")
-          +(p.comment?'<span style="font-size:10px;color:var(--muted)">'+esc(p.comment)+'</span>':"")
-          +'</div></div>'
+          +'<span class="rb '+rbc(p.role)+'" style="font-size:10px">'+esc(p.role)+'</span>'+(isFree?' <span style="font-size:10px;background:#1e2a4a;color:#60a5fa;padding:1px 6px;border-radius:8px">FREE</span>':"")
+          +'</div>'
           +'<div style="font-weight:800;color:'+(isFree?"#60a5fa":"#34d399")+';font-size:13px;white-space:nowrap">'+(isFree?"FREE":fmt(p.soldPrice))+'</div>'
           +'<button data-pid="'+p.id+'" class="reset-tp-btn" style="background:none;border:1px solid #374151;color:#6b7280;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;flex-shrink:0">↩</button></div>';
       });
     }
+    var maxAfford=Math.floor(t.budget/3000);
+    var slotsLeft=Math.max(0,18-totalCount);
+    var canBuy=Math.min(maxAfford,slotsLeft);
+    var slotsHtml=slotsLeft===0?'<div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">✅ Squad full</div>'
+      :'<div style="font-size:11px;color:#60a5fa;font-weight:700;margin-top:2px">Can buy '+canBuy+' more @ ₹3000 (slots: '+slotsLeft+')</div>';
     div.innerHTML='<div class="tcard-head" style="background:'+t.color+'18;border-bottom:2px solid '+t.color+'55">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
         +'<div><div style="font-weight:800;font-size:15px;color:'+t.color+'">'+esc(t.name)+'</div>'
-        +'<div style="display:flex;align-items:center;gap:6px;margin-top:4px">'
-          +'<span style="font-size:13px;color:'+countColor+';font-weight:800">'+totalCount+' players</span>'
-          +'<span style="font-size:10px;padding:1px 7px;border-radius:10px;background:'+countColor+'22;color:'+countColor+';font-weight:700">'+countLabel+'</span></div>'
+        +'<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:13px;color:'+countColor+';font-weight:800">'+totalCount+' players</span>'
+        +'<span style="font-size:10px;padding:1px 7px;border-radius:10px;background:'+countColor+'22;color:'+countColor+';font-weight:700">'+countLabel+'</span></div>'
         +'<div style="font-size:11px;color:var(--muted);margin-top:2px">Min 16 · Max 18</div></div>'
         +'<div style="text-align:right;flex-shrink:0">'
           +'<div style="font-size:10px;color:var(--muted);letter-spacing:1px">REMAINING</div>'
           +'<div style="font-weight:800;font-size:18px;color:'+(t.budget<5000?"var(--red)":t.budget<t.initialBudget*.2?"var(--gold)":"var(--green)")+'">'+fmt(t.budget)+'</div>'
           +'<div style="font-size:11px;color:var(--muted)">Spent: '+fmt(spent)+'</div>'
-          +(function(){
-            var maxAfford=Math.floor(t.budget/3000);
-            var slotsLeft=Math.max(0,18-totalCount);
-            var canBuy=Math.min(maxAfford,slotsLeft);
-            if(slotsLeft===0) return '<div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">✅ Squad full</div>';
-            return '<div style="font-size:11px;color:#60a5fa;font-weight:700;margin-top:2px">Can buy '+canBuy+' more @ ₹3000 (slots: '+slotsLeft+')</div>';
-          })()+'</div>'
+          +slotsHtml
+        +'</div>'
       +'</div>'
       +'<div class="bbar" style="margin-top:8px"><div class="bfill" style="width:'+pct+'%;background:'+t.color+'"></div></div>'
-      +'<div style="margin-top:5px;display:flex;align-items:center;gap:5px">'
-        +'<div style="font-size:9px;color:var(--muted)">0</div>'
-        +'<div style="flex:1;height:4px;background:#1e2a4a;border-radius:4px;overflow:hidden">'
-          +'<div style="height:100%;width:'+Math.min(100,(totalCount/18)*100)+'%;background:'+countColor+';border-radius:4px;transition:width .5s"></div></div>'
-        +'<div style="font-size:9px;color:var(--muted)">18</div></div>'
     +'</div>'
     +'<div style="display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">'
       +'<button class="ab aPh free-add-btn" data-tid="'+t.id+'" style="padding:5px 12px;font-size:12px">+ Add Player</button>'
@@ -1274,7 +1037,7 @@ function renderTeams(){
   el.querySelectorAll(".reset-tp-btn").forEach(function(btn){btn.addEventListener("click",function(){resetAP(this.getAttribute("data-pid"));});});
 }
 
-// ── UNSOLD ──
+// UNSOLD
 function renderUnsold(){
   var sq=(document.getElementById("unsoldSearch")?document.getElementById("unsoldSearch").value||"":"").toLowerCase().trim();
   function matchU(p){if(!sq)return true;return [p.name,p.phone,p.cricNum,p.role].some(function(v){return v&&String(v).toLowerCase().includes(sq);});}
@@ -1282,13 +1045,14 @@ function renderUnsold(){
   var el=document.getElementById("unsoldGrid");
   if(!unsold.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><div style="font-size:36px">'+(sq?"🔍":"🏏")+'</div><p>'+(sq?"No match":"No unsold players")+'</p></div>';return;}
   el.innerHTML=unsold.map(function(p){
+    var hasPhoto=p.photo&&p.photo.startsWith("data:");
     return '<div class="ucard">'
       +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">'
-      +(p.photo&&p.photo.startsWith("data:")?'<img src="'+p.photo+'" style="width:42px;height:54px;border-radius:6px;object-fit:cover;border:2px solid #7f1d1d;flex-shrink:0"/>'
-        :'<div style="width:42px;height:42px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🧑</div>')
+      +(hasPhoto?'<img src="'+p.photo+'" style="width:42px;height:54px;border-radius:6px;object-fit:cover;border:2px solid #7f1d1d;flex-shrink:0;cursor:pointer" onclick="openPhoto(\''+p.photo+'\',\''+p.name+'\',false)"/>'
+        :'<div style="width:42px;height:54px;border-radius:6px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🧑</div>')
       +'<div style="flex:1;min-width:0"><div style="font-weight:700;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
       +'<span class="rb '+rbc(p.role)+'">'+esc(p.role)+'</span>'
-      +(p.phone&&!isViewMode?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(p.phone)+'</div>':"")
+      +(p.phone?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(p.phone)+'</div>':"")
       +'<div style="font-size:12px;color:var(--muted);margin-top:2px">Base: '+fmt(p.basePrice)+'</div></div>'
       +'<span style="background:#7f1d1d;color:#fca5a5;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;flex-shrink:0">UNSOLD</span></div>'
       +'<button onclick="resetAP(\''+p.id+'\')" style="width:100%;padding:7px;background:#1e2a4a;border:1px solid #2d3f6e;color:#94a3b8;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700">🔄 Re-enter Auction</button>'
@@ -1296,7 +1060,7 @@ function renderUnsold(){
   }).join("");
 }
 
-// ── FREE ADD ──
+// FREE ADD
 function openFreeAdd(teamId){
   var t=teams.find(function(x){return x.id===teamId;});
   document.getElementById("freeAddTeamId").value=teamId;
@@ -1310,10 +1074,8 @@ function openFreeAdd(teamId){
   renderFreeList();
   document.getElementById("freeAddModal").classList.add("open");
 }
-
 function renderFreeList(){
   var sq=(document.getElementById("freeSearch").value||"").toLowerCase().trim();
-  var teamId=document.getElementById("freeAddTeamId").value;
   var available=allPlayers.filter(function(p){
     if(p.Status!=="Verified")return false;
     var ap=auctPlayers.find(function(a){return a.id===p.RegID;});
@@ -1322,26 +1084,25 @@ function renderFreeList(){
     return [p.Name,p.Phone,p.CricHeroesNum,p.PlayerType].some(function(v){return v&&String(v).toLowerCase().includes(sq);});
   });
   var el=document.getElementById("freePlayerList");
-  if(!available.length){el.innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px">'+(sq?"No players match":"All verified players are sold or none found")+'</div>';return;}
+  if(!available.length){el.innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px">'+(sq?"No players match":"All sold or none found")+'</div>';return;}
   el.innerHTML="";
   available.forEach(function(p){
     var ap=auctPlayers.find(function(a){return a.id===p.RegID;});
     var isUnsold=ap&&ap.status==="unsold";
     var isSel=freeSelectedPlayer&&freeSelectedPlayer.RegID===p.RegID;
+    var hasPhoto=p.PhotoURL&&p.PhotoURL.startsWith("data:");
     var row=document.createElement("div");
     row.style.cssText="display:flex;align-items:center;gap:9px;padding:9px 11px;cursor:pointer;border-bottom:1px solid var(--border);background:"+(isSel?"#052e16":"transparent");
-    row.innerHTML=(p.PhotoURL&&p.PhotoURL.startsWith("data:")?'<img src="'+p.PhotoURL+'" style="width:34px;height:44px;border-radius:5px;object-fit:cover;border:2px solid '+(isSel?"#22c55e":"#1a2535")+';flex-shrink:0"/>'
-      :'<div style="width:34px;height:34px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🧑</div>')
+    row.innerHTML=(hasPhoto?'<img src="'+p.PhotoURL+'" style="width:34px;height:44px;border-radius:5px;object-fit:cover;border:2px solid '+(isSel?"#22c55e":"#1a2535")+';flex-shrink:0"/>'
+      :'<div style="width:34px;height:44px;border-radius:5px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🧑</div>')
       +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px;color:#f1f5f9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.Name||"—")+'</div>'
-      +'<div style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:2px"><span class="rb '+rbc(p.PlayerType)+'" style="font-size:10px">'+esc(p.PlayerType||"—")+'</span>'
-      +(p.Phone?'<span style="font-size:10px;color:var(--muted)">'+esc(p.Phone)+'</span>':"")
-      +(isUnsold?'<span style="font-size:10px;background:#7f1d1d;color:#fca5a5;padding:1px 6px;border-radius:8px">Unsold</span>':"")
-      +'</div></div>'+(isSel?'<span style="color:#22c55e;font-size:16px;flex-shrink:0">✓</span>':"");
+      +'<span class="rb '+rbc(p.PlayerType)+'" style="font-size:10px">'+esc(p.PlayerType||"—")+'</span>'
+      +(isUnsold?' <span style="font-size:10px;background:#7f1d1d;color:#fca5a5;padding:1px 6px;border-radius:8px">Unsold</span>':"")
+      +'</div>'+(isSel?'<span style="color:#22c55e;font-size:16px;flex-shrink:0">✓</span>':"");
     row.addEventListener("click",function(){selectFreePlayer(p.RegID);});
     el.appendChild(row);
   });
 }
-
 function selectFreePlayer(regId){
   var p=allPlayers.find(function(x){return x.RegID===regId;});if(!p)return;
   freeSelectedPlayer=p;
@@ -1350,13 +1111,11 @@ function selectFreePlayer(regId){
   document.getElementById("freeSelName").textContent=p.Name||"—";
   document.getElementById("freeSelRole").innerHTML='<span class="rb '+rbc(p.PlayerType)+'" style="font-size:11px">'+esc(p.PlayerType||"—")+'</span>';
   var photoEl=document.getElementById("freeSelPhoto");
-  if(p.PhotoURL&&p.PhotoURL.startsWith("data:"))photoEl.innerHTML='<img src="'+p.PhotoURL+'" style="width:36px;height:36px;border-radius:50%;object-fit:cover"/>';
+  if(p.PhotoURL&&p.PhotoURL.startsWith("data:"))photoEl.innerHTML='<img src="'+p.PhotoURL+'" style="width:36px;height:46px;border-radius:5px;object-fit:cover"/>';
   else photoEl.textContent="🧑";
   renderFreeList();
 }
-
 function clearFreeSelection(){freeSelectedPlayer=null;document.getElementById("freeSelectedPlayerId").value="";document.getElementById("freeSelectedPreview").style.display="none";renderFreeList();}
-
 function confirmFreeAdd(){
   var selId=document.getElementById("freeSelectedPlayerId").value;
   if(!selId){notify("⚠ Select a player");return;}
@@ -1374,42 +1133,31 @@ function confirmFreeAdd(){
   }
   if(amount>0)teams=teams.map(function(t){return t.id===teamId?Object.assign({},t,{budget:t.budget-amount}):t;});
   closeM("freeAddModal");saveAuctionState();updateAll();renderTeams();
-  notify("✅ "+p.Name+" added"+(amount>0?" @ "+fmt(amount):"")+(comment?" ("+comment+")":""));
+  notify("✅ "+p.Name+" added"+(amount>0?" @ "+fmt(amount):""));
 }
 
-// ── DOWNLOAD ──
+// DOWNLOAD
 function downloadCSV(){
-  var h=["RegID","Name","CricHeroesNum","Phone","AltPhone","PlayerType","Availability","Address","UTR","Status","Timestamp","VerifiedAt","RejectionReason"];
+  var h=["RegID","Name","CricHeroesNum","Phone","AltPhone","PlayerType","Address","UTR","Status","Timestamp"];
   var rows=allPlayers.map(function(p){return h.map(function(k){return '"'+String(p[k]||"").replace(/"/g,'""')+'"';}).join(",");});
-  var csvContent=h.join(",")+"\n"+rows.join("\n");
-  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csvContent],{type:"text/csv"}));a.download="cricket_registrations.csv";a.click();
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([h.join(",")+"\n"+rows.join("\n")],{type:"text/csv"}));a.download="cricket_registrations.csv";a.click();
 }
-
 function downloadTeamExcel(teamId){
   var t=teams.find(function(x){return x.id===teamId;});if(!t)return;
   var tp=auctPlayers.filter(function(p){return p.soldTo===teamId;});
   var spent=t.initialBudget-t.budget;
-  var rows=[];
-  rows.push(["Friend's 11 Tournament 2026 - "+t.name]);
-  rows.push([]);
-  rows.push(["Team","Budget","Spent","Remaining","Total Players"]);
-  rows.push([t.name,t.initialBudget,spent,t.budget,tp.length]);
-  rows.push([]);
-  rows.push(["#","Name","CH Number","Phone","Role","Price","Type","Availability"]);
-  tp.forEach(function(p,i){rows.push([i+1,p.name,p.cricNum||"",p.phone||"",p.role,p.isFree?"FREE":p.soldPrice,p.isFree?"Free":"Auction",p.availability||""]);});
-  rows.push([]);rows.push(["Total Spent",spent]);rows.push(["Remaining Budget",t.budget]);
+  var rows=[["Friend's 11 Tournament 2026 - "+t.name],[],["Team","Budget","Spent","Remaining","Players"],[t.name,t.initialBudget,spent,t.budget,tp.length],[],["#","Name","CH#","Phone","Role","Price","Type"]];
+  tp.forEach(function(p,i){rows.push([i+1,p.name,p.cricNum||"",p.phone||"",p.role,p.isFree?"FREE":p.soldPrice,p.isFree?"Free":"Auction"]);});
   var csv=rows.map(function(r){return r.map(function(c){return '"'+String(c||"").replace(/"/g,'""')+'"';}).join(",");}).join("\n");
   var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="Friends11_"+t.name.replace(/\s+/g,"_")+".csv";a.click();
   notify("📥 Downloaded "+t.name);
 }
-
 function downloadAllTeams(){
   var rows=[["Friend's 11 Tournament 2026 - All Teams"]];
   teams.forEach(function(t){
     var tp=auctPlayers.filter(function(p){return p.soldTo===t.id;});
     var spent=t.initialBudget-t.budget;
-    rows.push([]);rows.push(["TEAM: "+t.name]);
-    rows.push(["Budget",t.initialBudget,"Spent",spent,"Remaining",t.budget,"Players",tp.length]);
+    rows.push([]);rows.push(["TEAM: "+t.name]);rows.push(["Budget",t.initialBudget,"Spent",spent,"Remaining",t.budget,"Players",tp.length]);
     rows.push(["#","Name","CH#","Phone","Role","Price","Type"]);
     tp.forEach(function(p,i){rows.push([i+1,p.name,p.cricNum||"",p.phone||"",p.role,p.isFree?"FREE":p.soldPrice,p.isFree?"Free":"Auction"]);});
   });
@@ -1418,12 +1166,10 @@ function downloadAllTeams(){
   notify("📥 All teams downloaded!");
 }
 
-// ── CELEBRATION ──
+// CELEBRATION
 var confColors=["#22c55e","#f59e0b","#3b82f6","#a78bfa","#f472b6","#34d399","#fbbf24","#fff","#60a5fa"];
-
 function showSoldCelebration(playerName,role,price,teamName,teamColor){
-  var el=document.getElementById("soldCelebration"),card=document.getElementById("soldCard");
-  if(!el||!card)return;
+  var el=document.getElementById("soldCelebration"),card=document.getElementById("soldCard");if(!el||!card)return;
   document.getElementById("soldPlayerName").textContent=playerName;
   document.getElementById("soldPlayerRole").innerHTML='<span class="rb '+rbc(role)+'" style="font-size:14px">'+esc(role)+'</span>';
   document.getElementById("soldPriceEl").textContent=fmt(price);
@@ -1435,13 +1181,11 @@ function showSoldCelebration(playerName,role,price,teamName,teamColor){
   if(confettiTimer)clearTimeout(confettiTimer);
   confettiTimer=setTimeout(function(){hideSoldCelebration();},7000);
 }
-
 function hideSoldCelebration(){
-  var card=document.getElementById("soldCard");if(card){card.style.transform="translate(-50%,-50%) scale(0)";}
+  var card=document.getElementById("soldCard");if(card)card.style.transform="translate(-50%,-50%) scale(0)";
   stopConfetti();
   setTimeout(function(){var el=document.getElementById("soldCelebration");if(el)el.style.display="none";},450);
 }
-
 function launchConfetti(){
   var canvas=document.getElementById("confettiCanvas");if(!canvas)return;
   canvas.width=window.innerWidth;canvas.height=window.innerHeight;
@@ -1451,22 +1195,12 @@ function launchConfetti(){
   if(confettiInterval)clearInterval(confettiInterval);
   confettiInterval=setInterval(function(){
     ctx.clearRect(0,0,canvas.width,canvas.height);frame++;
-    pieces.forEach(function(p){
-      p.y+=p.speed;p.angle+=p.spin;p.x+=Math.sin(p.waveOff+frame*p.waveSpd)*p.wave;
-      if(p.y>canvas.height+20){p.y=-20;p.x=Math.random()*canvas.width;}
-      ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle*Math.PI/180);ctx.fillStyle=p.color;ctx.globalAlpha=0.88;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
-    });
+    pieces.forEach(function(p){p.y+=p.speed;p.angle+=p.spin;p.x+=Math.sin(p.waveOff+frame*p.waveSpd)*p.wave;if(p.y>canvas.height+20){p.y=-20;p.x=Math.random()*canvas.width;}ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle*Math.PI/180);ctx.fillStyle=p.color;ctx.globalAlpha=0.88;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
   },16);
 }
-
-function stopConfetti(){
-  if(confettiInterval){clearInterval(confettiInterval);confettiInterval=null;}
-  var canvas=document.getElementById("confettiCanvas");if(canvas)canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);
-}
-
+function stopConfetti(){if(confettiInterval){clearInterval(confettiInterval);confettiInterval=null;}var canvas=document.getElementById("confettiCanvas");if(canvas)canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);}
 function showUnsoldStamp(playerName){
-  var el=document.getElementById("unsoldStamp"),stamp=document.getElementById("stampEl");
-  if(!el||!stamp)return;
+  var el=document.getElementById("unsoldStamp"),stamp=document.getElementById("stampEl");if(!el||!stamp)return;
   document.getElementById("unsoldPlayerName").textContent=playerName;
   stamp.style.transition="none";stamp.style.transform="translate(-50%,-50%) scale(3) rotate(-15deg)";stamp.style.opacity="0";
   el.style.display="block";
@@ -1474,7 +1208,6 @@ function showUnsoldStamp(playerName){
   if(unsoldTimer)clearTimeout(unsoldTimer);
   unsoldTimer=setTimeout(function(){stamp.style.transition="all .3s ease";stamp.style.opacity="0";stamp.style.transform="translate(-50%,-50%) scale(0.8) rotate(-12deg)";setTimeout(function(){el.style.display="none";},350);},4000);
 }
-
 document.addEventListener("click",function(e){
   var sc=document.getElementById("soldCelebration"),us=document.getElementById("unsoldStamp");
   if(sc&&sc.style.display!=="none"&&e.target===sc)hideSoldCelebration();
@@ -1482,66 +1215,5 @@ document.addEventListener("click",function(e){
 },{passive:true});
 
 </script>
-
-<!-- SOLD CELEBRATION -->
-<div id="soldCelebration" style="display:none;position:fixed;inset:0;z-index:9999;overflow:hidden;cursor:pointer">
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,.82)"></div>
-  <canvas id="confettiCanvas" style="position:absolute;inset:0;width:100%;height:100%"></canvas>
-  <div id="soldCard" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:linear-gradient(135deg,#052e16,#065f46);border:3px solid #22c55e;border-radius:20px;padding:32px 36px;text-align:center;min-width:280px;max-width:88vw;box-shadow:0 0 60px #22c55e88;transition:transform .45s cubic-bezier(.34,1.56,.64,1);z-index:2">
-    <div style="font-size:56px;margin-bottom:6px">🏆</div>
-    <div style="font-family:'Bebas Neue',cursive;font-size:52px;letter-spacing:4px;color:#22c55e;line-height:1;text-shadow:0 0 30px #22c55e">SOLD!</div>
-    <div id="soldPlayerName" style="font-size:20px;font-weight:800;color:#f8fafc;margin-top:8px"></div>
-    <div id="soldPlayerRole" style="margin-top:5px"></div>
-    <div id="soldPriceEl" style="font-family:'Bebas Neue',cursive;font-size:34px;color:#f59e0b;margin-top:6px;letter-spacing:2px"></div>
-    <div id="soldTeamEl" style="font-size:15px;font-weight:700;margin-top:5px"></div>
-    <div style="font-size:11px;color:#22c55e;margin-top:10px;opacity:.7">Tap to dismiss</div>
-  </div>
-</div>
-
-<!-- UNSOLD STAMP -->
-<div id="unsoldStamp" style="display:none;position:fixed;inset:0;z-index:9999;overflow:hidden;cursor:pointer">
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,.75)"></div>
-  <div id="stampEl" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(3) rotate(-15deg);opacity:0;border:8px solid #ef4444;border-radius:14px;padding:18px 36px;text-align:center;background:rgba(127,29,29,.4);transition:all .4s cubic-bezier(.34,1.56,.64,1)">
-    <div style="font-family:'Bebas Neue',cursive;font-size:64px;letter-spacing:6px;color:#ef4444;text-shadow:0 0 20px #ef4444;line-height:1">UNSOLD</div>
-    <div id="unsoldPlayerName" style="font-size:16px;font-weight:800;color:#fca5a5;margin-top:4px"></div>
-    <div style="font-size:11px;color:#f87171;margin-top:6px;opacity:.7">Tap to dismiss</div>
-  </div>
-</div>
-
-<!-- FREE ADD MODAL -->
-<div class="overlay" id="freeAddModal">
-  <div class="modal" style="max-width:460px">
-    <div class="mhdr"><h3 id="freeAddTitle">Add Player to Team</h3><button class="xbtn" onclick="closeM('freeAddModal')">✕</button></div>
-    <div style="margin-bottom:10px"><input type="text" id="freeSearch" class="inp" placeholder="🔍 Search name, phone, CH #..." oninput="renderFreeList()" style="font-size:14px"/></div>
-    <div id="freePlayerList" style="max-height:260px;overflow-y:auto;margin-bottom:12px;border:1px solid var(--border);border-radius:9px"></div>
-    <div id="freeSelectedPreview" style="display:none;background:#052e16;border:1px solid var(--green);border-radius:9px;padding:10px 12px;margin-bottom:12px;align-items:center;gap:10px">
-      <div id="freeSelPhoto" style="width:36px;height:36px;border-radius:50%;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">🧑</div>
-      <div style="flex:1"><div id="freeSelName" style="font-weight:800;color:#f8fafc;font-size:14px"></div><div id="freeSelRole" style="font-size:11px;margin-top:2px"></div></div>
-      <button type="button" onclick="clearFreeSelection()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer">✕</button>
-    </div>
-    <div style="margin-bottom:11px"><label class="lbl">Amount ₹ (0 = Free)</label><input type="number" id="freeAmount" class="inp" placeholder="0" value="0" min="0"/></div>
-    <div style="margin-bottom:14px"><label class="lbl">Reason / Comment (optional)</label><input type="text" id="freeComment" class="inp" placeholder="e.g. Replacement, Captain pick..."/></div>
-    <input type="hidden" id="freeAddTeamId"/>
-    <input type="hidden" id="freeSelectedPlayerId" value=""/>
-    <div style="display:flex;gap:9px">
-      <button type="button" class="btn btn-g" onclick="confirmFreeAdd()" style="flex:1">✅ Add to Team</button>
-      <button type="button" class="btn btn-ghost" onclick="closeM('freeAddModal')" style="flex:1">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<div class="notif" id="notif"></div>
-
-<!-- FULL PHOTO MODAL -->
-<div class="overlay" id="photoModal" style="cursor:pointer" onclick="closeM('photoModal')">
-  <div style="position:relative;max-width:340px;width:90%;margin:auto;top:50%;transform:translateY(-50%)" onclick="event.stopPropagation()">
-    <div style="background:#111827;border:2px solid var(--green);border-radius:16px;padding:18px;text-align:center">
-      <div style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;color:var(--green);margin-bottom:12px" id="photoModalName">Player Photo</div>
-      <img id="photoModalImg" style="width:100%;max-width:280px;border-radius:12px;object-fit:contain;border:3px solid var(--green);box-shadow:0 0 30px rgba(34,197,94,.3)"/>
-      <div id="photoModalStatus" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
-      <button onclick="closeM('photoModal')" style="margin-top:12px;padding:8px 24px;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">✕ Close</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
