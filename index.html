@@ -469,37 +469,81 @@ function clearAuctionState(){
   try{localStorage.removeItem("upl_teams");localStorage.removeItem("upl_auctState");}catch(e){}
 }
 function loadAuctionFromSheet(){
-  notify("📡 Syncing...");
+  notify("📡 Syncing from sheet...");
   fetch(SCRIPT_URL+"?action=loadAuction")
   .then(function(r){return r.json();})
   .then(function(data){
     if(!data.success){notify("⚠ Sync failed");return;}
+
+    var sheetTeams = data.teams||[];
+    var sheetAuct  = data.auctState||[];
+
+    // SHEET IS SOURCE OF TRUTH
+    // If sheet has empty teams → reset happened → clear local too
+    if(sheetTeams.length===0 && sheetAuct.filter(function(s){return s.status==="sold";}).length===0){
+      // Sheet is empty/reset — clear local state
+      teams=[];
+      auctPlayers=auctPlayers.map(function(p){return Object.assign({},p,{status:"pending",soldTo:null,soldPrice:0});});
+      auctPlayers=auctPlayers.filter(function(p){return !p.isFree;});
+      try{localStorage.removeItem("upl_teams");localStorage.removeItem("upl_auctState");}catch(e){}
+      updateStats();updateBadges();renderTeamSetup();renderTeams();renderAuction();renderUnsold();
+      notify("✅ Synced — auction cleared by admin");
+      return;
+    }
+
+    // Sheet has data — merge it in
     var changed=false;
-    if(data.teams&&data.teams.length){
-      data.teams.forEach(function(st){
-        var ex=teams.find(function(t){return t.id===st.id;});
-        if(!ex){teams.push(st);changed=true;}
-        else if(ex.budget!==st.budget){teams=teams.map(function(t){return t.id===st.id?st:t;});changed=true;}
-      });
+
+    // Sync teams from sheet (sheet wins)
+    sheetTeams.forEach(function(st){
+      var ex=teams.find(function(t){return t.id===st.id;});
+      if(!ex){teams.push(st);changed=true;}
+      else if(ex.budget!==st.budget){teams=teams.map(function(t){return t.id===st.id?st:t;});changed=true;}
+    });
+    // Remove teams that are no longer in sheet
+    if(teams.length!==sheetTeams.length){
+      var sheetIds=sheetTeams.map(function(t){return t.id;});
+      var before=teams.length;
+      teams=teams.filter(function(t){return sheetIds.includes(t.id);});
+      if(teams.length!==before)changed=true;
     }
-    if(data.auctState&&data.auctState.length){
-      data.auctState.forEach(function(s){
-        var ex=auctPlayers.find(function(p){return p.id===s.id;});
-        if(ex){
-          if(ex.status!==s.status||ex.soldTo!==s.soldTo){
-            auctPlayers=auctPlayers.map(function(p){return p.id===s.id?Object.assign({},p,{status:s.status,soldTo:s.soldTo,soldPrice:s.soldPrice,basePrice:s.basePrice,isFree:s.isFree||false}):p;});
-            changed=true;
-          }
-        }else if(s.status==="sold"||s.status==="unsold"||s.isFree){auctPlayers.push(Object.assign({},s));changed=true;}
-      });
-    }
+
+    // Sync auction state from sheet (sheet wins)
+    sheetAuct.forEach(function(s){
+      var ex=auctPlayers.find(function(p){return p.id===s.id;});
+      if(ex){
+        if(ex.status!==s.status||ex.soldTo!==s.soldTo){
+          auctPlayers=auctPlayers.map(function(p){
+            return p.id===s.id?Object.assign({},p,{status:s.status,soldTo:s.soldTo,
+              soldPrice:s.soldPrice,basePrice:s.basePrice,isFree:s.isFree||false}):p;
+          });
+          changed=true;
+        }
+      }else if(s.status==="sold"||s.status==="unsold"||s.isFree){
+        auctPlayers.push(Object.assign({},s));changed=true;
+      }
+    });
+    // Reset players that sheet says are pending but local says sold
+    var sheetSoldIds=sheetAuct.filter(function(s){return s.status==="sold";}).map(function(s){return s.id;});
+    auctPlayers=auctPlayers.map(function(p){
+      if(p.status==="sold"&&!sheetSoldIds.includes(p.id)&&!p.isFree){
+        changed=true;
+        return Object.assign({},p,{status:"pending",soldTo:null,soldPrice:0});
+      }
+      return p;
+    });
+
     if(changed){
-      localStorage.setItem("upl_teams",JSON.stringify(teams));
-      var as=auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};});
-      localStorage.setItem("upl_auctState",JSON.stringify(as));
+      try{
+        localStorage.setItem("upl_teams",JSON.stringify(teams));
+        var as=auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};});
+        localStorage.setItem("upl_auctState",JSON.stringify(as));
+      }catch(e){}
       updateStats();updateBadges();renderTeamSetup();renderTeams();renderAuction();renderUnsold();
       notify("✅ Synced! "+teams.length+" teams");
-    }else{notify("✅ Up to date");}
+    }else{
+      notify("✅ Already up to date");
+    }
   }).catch(function(){notify("⚠ Sync failed");});
 }
 function autoSyncVerified(){
