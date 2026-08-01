@@ -572,23 +572,64 @@ function autoSyncVerified(){
   });
 }
 
+// Fetch registrations in small pages. A single response containing every
+// base64 player photo can exceed Apps Script's response capacity and appear
+// in the browser as a CORS error even though the endpoint says 200 OK.
+async function fetchAllPlayers(){
+  var combined=[],offset=0,limit=20,safety=0;
+  do{
+    var url=SCRIPT_URL+"?action=getAll&offset="+offset+"&limit="+limit+"&t="+Date.now();
+    var res=await fetch(url);
+    if(!res.ok)throw new Error("Server error: "+res.status);
+    var data=await res.json();
+    if(!data.success)throw new Error(data.error||"Failed");
+    var page=data.data||[];
+    combined=combined.concat(page);
+    offset+=page.length;
+    safety++;
+    if(!data.hasMore||page.length===0)return combined;
+  }while(safety<500);
+  throw new Error("Too many registration pages");
+}
+
 // LOAD DATA
 async function loadData(){
-  document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⏳</div><p>Loading...</p></div>';
-  try{
-    var res=await fetch(SCRIPT_URL+"?action=getAll");
-    var data=await res.json();
-    if(!data.success)throw new Error(data.error);
-    var freshData=data.data||[];
-    if(freshData.length===0){
-      clearAuctionState();auctPlayers=[];teams=[];
-      notify("🆕 Fresh sheet — cleared local cache");
+  document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⏳</div><p>Loading players...</p></div>';
+  var retries=0;
+  async function tryFetch(){
+    try{
+      var freshData=await fetchAllPlayers();
+      // Only clear local state if sheet is confirmed empty AND we have no players
+      if(freshData.length===0 && allPlayers.length===0){
+        clearAuctionState();auctPlayers=[];teams=[];
+        notify("Sheet is empty — no registrations yet");
+      }
+      allPlayers=freshData;
+      updateAll();
+      loadAuctionFromSheet();
+    }catch(e){
+      retries++;
+      if(retries<3){
+        // Retry after 2 seconds
+        notify("⏳ Retrying... ("+retries+"/3)");
+        setTimeout(tryFetch, 2000);
+      }else{
+        // Show cached data if available
+        if(allPlayers.length>0){
+          notify("⚠ Network error — showing cached data");
+          updateAll();
+        }else{
+          document.getElementById("tableArea").innerHTML=
+            '<div class="empty"><div style="font-size:34px">⚠️</div>'
+            +'<p style="color:var(--red)">Cannot connect to server</p>'
+            +'<p style="font-size:12px;color:var(--muted);margin-top:8px">Check: Apps Script deployed with <b>Who has access = Anyone</b></p>'
+            +'<button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:var(--blue);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:700">🔄 Retry</button>'
+            +'</div>';
+        }
+      }
     }
-    allPlayers=freshData;
-    updateAll();loadAuctionFromSheet();
-  }catch(e){
-    document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⚠️</div><p style="color:var(--red)">'+esc(e.message)+'</p></div>';
   }
+  tryFetch();
 }
 function updateAll(){updateStats();renderTable();renderRecent();loadAuctionState();autoSyncVerified();updateStats();updateBadges();}
 function updateStats(){
@@ -776,12 +817,21 @@ function viewPlayer(id){
   document.getElementById("dmBody").innerHTML=html;
   document.getElementById("detailModal").classList.add("open");
 }
-function viewPay(id){
+async function viewPay(id){
   var p=allPlayers.find(function(x){return x.RegID===id;});if(!p)return;
   document.getElementById("payTitle").textContent="Payment — "+p.Name;
-  document.getElementById("payImg").src=p.PayScreenshotURL;
+  document.getElementById("payImg").removeAttribute("src");
   document.getElementById("payUTR").innerHTML="UTR: <b style=\"color:var(--gold)\">"+esc(p.UTR||"—")+"</b>";
   document.getElementById("payModal").classList.add("open");
+  try{
+    var res=await fetch(SCRIPT_URL+"?action=getPayment&regId="+encodeURIComponent(id)+"&t="+Date.now());
+    var data=await res.json();
+    if(!data.success||!data.payScreenshotURL)throw new Error(data.error||"No payment screenshot");
+    document.getElementById("payImg").src=data.payScreenshotURL;
+    document.getElementById("payUTR").innerHTML="UTR: <b style=\"color:var(--gold)\">"+esc(data.utr||p.UTR||"—")+"</b>";
+  }catch(e){
+    document.getElementById("payUTR").innerHTML='<span style="color:var(--red)">⚠ '+esc(e.message)+"</span>";
+  }
 }
 
 // SETUP
@@ -797,11 +847,10 @@ async function loadPlayers(){
   btn.disabled=true;btn.innerHTML='<span class="spin"></span>Loading...';
   msg.style.display="block";msg.style.color="#60a5fa";msg.textContent="Fetching verified players...";
   try{
-    var res=await fetch(SCRIPT_URL+"?action=getAll");var data=await res.json();
-    if(!data.success)throw new Error(data.error);
-    var verified=(data.data||[]).filter(function(p){return p.Status==="Verified";});
+    var fetchedPlayers=await fetchAllPlayers();
+    var verified=fetchedPlayers.filter(function(p){return p.Status==="Verified";});
     if(!verified.length)throw new Error("No verified players. Verify in Registrations first.");
-    allPlayers=data.data||[];
+    allPlayers=fetchedPlayers;
     var base=parseInt(document.getElementById("defBase").value)||3000;
     var existing=auctPlayers.map(function(p){return p.id;});
     verified.forEach(function(p){
