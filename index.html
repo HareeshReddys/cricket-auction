@@ -348,6 +348,73 @@ textarea.rinp{width:100%;padding:9px;background:#0d1220;border:1px solid #7f1d1d
 <div class="overlay" id="deleteModal"><div class="modal" style="max-width:350px"><div class="mhdr"><h3>Delete Player</h3><button class="xbtn" onclick="closeM('deleteModal')">✕</button></div><div class="del-box"><div style="color:#fca5a5;font-weight:700;margin-bottom:4px">Cannot be undone!</div><div id="delName" style="font-size:16px;color:#f8fafc;font-weight:800"></div></div><div style="display:flex;gap:9px"><button class="btn aDel" onclick="confirmDelete()" style="flex:1;padding:10px;font-size:14px">Delete</button><button class="btn btn-ghost" onclick="closeM('deleteModal')" style="flex:1;padding:10px">Cancel</button></div></div></div>
 <div class="overlay" id="payModal"><div class="modal" style="max-width:400px;text-align:center"><div class="mhdr"><h3 id="payTitle">Payment</h3><button class="xbtn" onclick="closeM('payModal')">✕</button></div><img id="payImg" style="max-width:100%;border-radius:10px;border:2px solid var(--gold)"/><div id="payUTR" style="margin-top:9px;font-size:13px;color:var(--muted)"></div></div></div>
 
+<!-- BID MODAL -->
+<div class="overlay" id="bidModal">
+  <div class="modal" style="max-width:500px">
+    <div class="mhdr"><h3>Live Bid</h3><button class="xbtn" onclick="closeM('bidModal')">✕</button></div>
+    <div class="bpc">
+      <div id="bidPhotoWrap" style="display:flex;justify-content:center;margin-bottom:10px"></div>
+      <div id="bidName" style="font-size:22px;font-weight:800;color:#f8fafc"></div>
+      <div id="bidCricNum" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+      <div id="bidPhone" style="font-size:12px;color:#94a3b8;margin-top:3px"></div>
+      <div id="bidRole" style="margin-top:8px"></div>
+      <div id="bidAvail" style="display:none;margin-top:7px;color:#60a5fa;font-size:12px;font-weight:700"><span></span></div>
+      <div style="margin-top:10px;font-size:13px;color:var(--muted)">Base Price: <b id="bidBase" style="color:var(--gold)">₹0</b></div>
+    </div>
+    <label class="lbl">Final Bid Amount ₹</label>
+    <input id="bidInp" type="number" class="inp" oninput="checkBid()"/>
+    <div id="bidWarn" style="display:none;color:var(--red);font-size:12px;margin-top:6px">⚠ Bid amount is below the base price.</div>
+    <div id="bidActions" style="display:flex;gap:9px;margin-top:14px">
+      <button class="btn btn-g" onclick="handleSold()" style="flex:1">✅ SOLD</button>
+      <button class="btn" onclick="handleUnsold()" style="flex:1;background:#7f1d1d;color:#fca5a5">❌ UNSOLD</button>
+    </div>
+    <div id="teamPickWrap" style="display:none;margin-top:14px">
+      <div id="teamPickLabel" style="font-size:13px;color:var(--muted);margin-bottom:9px"></div>
+      <div id="teamPickGrid" class="tpg"></div>
+      <button class="btn btn-ghost" onclick="showBidActions()" style="width:100%;margin-top:10px">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PLAYER TO TEAM MODAL -->
+<div class="overlay" id="freeAddModal">
+  <div class="modal" style="max-width:480px">
+    <div class="mhdr"><h3 id="freeAddTitle">Add Player</h3><button class="xbtn" onclick="closeM('freeAddModal')">✕</button></div>
+    <input type="hidden" id="freeAddTeamId"/><input type="hidden" id="freeSelectedPlayerId"/>
+    <input id="freeSearch" class="inp" placeholder="Search verified player..." oninput="renderFreeList()"/>
+    <div id="freePlayerList" style="max-height:240px;overflow-y:auto;background:#0d1220;border:1px solid var(--border);border-radius:8px;margin-top:8px"></div>
+    <div id="freeSelectedPreview" style="display:none;align-items:center;gap:9px;background:#052e16;border:1px solid #166534;border-radius:8px;padding:9px;margin-top:10px">
+      <div id="freeSelPhoto" style="width:36px;height:46px;display:flex;align-items:center;justify-content:center;background:#1a2535;border-radius:5px">🧑</div>
+      <div style="flex:1"><div id="freeSelName" style="font-weight:800"></div><div id="freeSelRole"></div></div>
+      <button class="xbtn" onclick="clearFreeSelection()">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px">
+      <div><label class="lbl">Amount ₹</label><input id="freeAmount" type="number" class="inp" value="0"/></div>
+      <div><label class="lbl">Comment</label><input id="freeComment" class="inp" placeholder="Optional"/></div>
+    </div>
+    <button class="btn btn-g" onclick="confirmFreeAdd()" style="width:100%;margin-top:13px">✅ Add to Team</button>
+  </div>
+</div>
+
+<!-- AUCTION FEEDBACK -->
+<div id="notif" class="notif"></div>
+<div id="soldCelebration" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:500;cursor:pointer">
+  <canvas id="confettiCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+  <div id="soldCard" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);width:min(88%,390px);background:#071b10;border:3px solid var(--green);border-radius:22px;padding:28px;text-align:center;box-shadow:0 0 60px #22c55e66">
+    <div style="font-family:'Bebas Neue',cursive;font-size:48px;color:var(--green);letter-spacing:5px">SOLD!</div>
+    <div id="soldPlayerName" style="font-size:25px;font-weight:800;color:#fff"></div>
+    <div id="soldPlayerRole" style="margin-top:7px"></div>
+    <div id="soldPriceEl" style="font-family:'Bebas Neue',cursive;font-size:38px;color:var(--gold);margin-top:10px"></div>
+    <div id="soldTeamEl" style="font-size:20px;margin-top:4px"></div>
+  </div>
+</div>
+<div id="unsoldStamp" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;cursor:pointer">
+  <div id="stampEl" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(3) rotate(-15deg);opacity:0;text-align:center;border:7px solid var(--red);border-radius:18px;padding:25px 35px;color:var(--red)">
+    <div style="font-family:'Bebas Neue',cursive;font-size:55px;letter-spacing:6px">UNSOLD</div>
+    <div id="unsoldPlayerName" style="font-size:22px;font-weight:800;color:#fca5a5"></div>
+  </div>
+</div>
+
 <!-- FULL PHOTO MODAL -->
 <div class="overlay" id="photoModal" style="cursor:pointer" onclick="closeM('photoModal')">
   <div style="position:relative;max-width:340px;width:90%;margin:auto;top:50%;transform:translateY(-50%)" onclick="event.stopPropagation()">
