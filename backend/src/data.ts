@@ -18,6 +18,7 @@ import {
 } from "./auth.ts";
 import { enqueueSync } from "./sheets.ts";
 import { assetStorage } from "./storage.ts";
+import { cricHeroesProfile } from "./cricheroes.ts";
 
 export async function dataApi(req: Request, parts: string[], ctx: Context) {
   const env = ctx.env;
@@ -225,6 +226,18 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
     const id = t.id;
     if (parts[2] && !["register", "live"].includes(parts[2]))
       await requireTournament(ctx, id);
+    if (parts[2] === "cricheroes" && method === "POST") {
+      if (t.settings.archived) throw new AppError("Archived tournament is read only.", 403);
+      const b = await body();
+      const profile = cricHeroesProfile(b.profileURL);
+      const changed = await db().batch([
+        db().prepare("UPDATE players SET data=json_set(data,'$.CricHeroesProfileURL',?) WHERE id=? AND tournament_id=?")
+          .bind(profile, text(b.regId, 80, true), id),
+        db().prepare("UPDATE tournaments SET version=version+1 WHERE id=?").bind(id),
+      ]);
+      if (!changed[0].meta.changes) throw new AppError("Player not found.", 404);
+      return json({ success: true, profileURL: profile });
+    }
     if (parts[2] === "invites" && method === "POST")
       return json(await createInvite(req, ctx, id));
     if (parts[2] === "members" && method === "DELETE") {
@@ -352,6 +365,7 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
       if (!/^\d{10}$/.test(phone) || !roles.includes(b.playerType))
         throw new AppError("Enter a valid phone and player role.");
       const altPhone = text(b.altPhone, 10);
+      const profile = cricHeroesProfile(b.cricHeroesProfileURL);
       if (altPhone && !/^\d{10}$/.test(altPhone))
         throw new AppError("Invalid alternate phone.");
       if (b.agreed !== true)
@@ -389,6 +403,7 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
           Phone: phone,
           AltPhone: altPhone,
           CricHeroesNum: ch,
+          CricHeroesProfileURL: profile,
           PlayerType: b.playerType,
           Address: address,
           Availability: availability,

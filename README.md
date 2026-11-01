@@ -85,3 +85,9 @@ Local and hosted databases are separate. Local preview data and secrets are igno
 - `npm run build` — GitHub Pages assets, auction adapter and offline shell.
 
 The earlier Sites prototype remains in the ignored local `tournament-studio/` folder. It is not used by the independent build or included in the GitHub Pages artifact.
+
+## CricHeroes player statistics
+
+Registration accepts an optional full CricHeroes player profile link in addition to the registered number. Auction cards, the bidding window and registration details offer **View CricHeroes stats** when a link is available. Organizers can add, edit or remove links for existing players. A mobile number alone is never guessed as a player profile ID.
+
+Profiles open on CricHeroes in a separate tab using the visitor's own CricHeroes session. Basic public statistics and any Pro-only insights remain controlled by CricHeroes; this dashboard does not import statistics or share/store CricHeroes credentials. Sign in again if CricHeroes expires the session. Use the full `https://cricheroes.com/player-profile/...` link, rather than a shortened sharing URL.

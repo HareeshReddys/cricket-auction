@@ -37,6 +37,9 @@ for (const value of ["p.PhotoURL", "p.photo", "bidPlayer.photo"]) {
   s = s.replaceAll(`src="'+${value}+'"`, `src="'+previewURL(${value})+'"`);
 }
 s=s.replaceAll('img.src=p.PhotoURL;', 'img.src=previewURL(p.PhotoURL);');
+// Link the original registration and auction card numbers to their saved profile.
+s = s.replace('esc(p.CricHeroesNum||"—")', 'cricHeroesMarkup(p.RegID)')
+  .replace("+esc(p.cricNum)+'</div>'", "+cricHeroesMarkup(p.id)+'</div>'");
 await fs.writeFile(
   new URL("../dashboard/public/auction.html", import.meta.url),
   s,

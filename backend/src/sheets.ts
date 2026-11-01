@@ -240,6 +240,7 @@ export async function drainSync(env: Env) {
         "RejectionReason",
         "PhotoURL",
         "PayScreenshotURL",
+        "CricHeroesProfileURL",
       ];
       const tkeys = ["id", "name", "initialBudget", "budget", "color"];
       const akeys = [
