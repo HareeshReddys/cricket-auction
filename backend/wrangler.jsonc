@@ -1,0 +1,10 @@
+{
+  "$schema":"../node_modules/wrangler/config-schema.json",
+  "name":"boundary-cricket-api",
+  "main":"src/index.ts",
+  "compatibility_date":"2026-05-15",
+  "compatibility_flags":["nodejs_compat"],
+  "vars":{"FRONTEND_ORIGIN":"https://hareeshreddys.github.io","ADMIN_EMAIL":"seepati.hareeshreddy@gmail.com"},
+  "d1_databases":[{"binding":"DB","database_name":"boundary-cricket","database_id":"3efae165-67fa-4396-aad8-f41efc8cd141","migrations_dir":"migrations"}],
+  "triggers":{"crons":["*/5 * * * *"]}
+}

@@ -1,0 +1,17 @@
+FRONTEND_ORIGIN=http://127.0.0.1:5173
+ADMIN_EMAIL=seepati.hareeshreddy@gmail.com
+# Generate long random values with: openssl rand -hex 32
+ADMIN_SETUP_TOKEN=
+ASSET_SIGNING_KEY=
+# Optional Google Sheets automation (service account JSON, single line; do not commit).
+GOOGLE_SERVICE_ACCOUNT_JSON=
+# Human Google account that should own access to automatically created Sheets.
+GOOGLE_SHEET_SHARE_EMAIL=
+# Recommended simple Google Sheets connection: the separate Apps Script bridge.
+GOOGLE_SHEETS_WEBHOOK_URL=
+GOOGLE_SHEETS_WEBHOOK_SECRET=
+# Alternative direct Google API integration:
+GOOGLE_OAUTH_CLIENT_ID=
+GOOGLE_OAUTH_CLIENT_SECRET=
+GOOGLE_OAUTH_REFRESH_TOKEN=
+GOOGLE_DRIVE_FOLDER_ID=

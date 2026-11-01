@@ -1,0 +1,13 @@
+node_modules/
+dashboard/dist/
+backend/.wrangler/
+.wrangler/
+*.tsbuildinfo
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
+outputs/
+.DS_Store
+# Preserve the earlier Sites prototype locally; the standalone application below replaces it.
+tournament-studio/

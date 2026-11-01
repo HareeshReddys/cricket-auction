@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Cricket Auction Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--dark:#07090f;--card:#0f1623;--card2:#111827;--border:#1a2535;--text:#e2e8f0;--muted:#64748b;--green:#22c55e;--gold:#f59e0b;--red:#ef4444;--blue:#3b82f6;--purple:#a78bfa}
+body{background:var(--dark);font-family:'Rajdhani',sans-serif;color:var(--text);min-height:100vh}
+
+/* HEADER */
+.hdr{background:linear-gradient(135deg,#0f1a2e,#080e1a);border-bottom:2px solid #1a2a40;padding:0 18px;display:flex;align-items:center;position:sticky;top:0;z-index:100;min-height:56px;gap:12px;flex-wrap:wrap}
+.brand{font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:3px;color:#fff;white-space:nowrap}
+.brand span{color:var(--gold)}
+.nav{display:flex;align-items:stretch;flex:1;overflow-x:auto;min-height:56px}
+.nav-btn{display:flex;align-items:center;gap:6px;padding:0 14px;border:none;background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:all .2s}
+.nav-btn:hover{color:var(--text);background:#ffffff05}
+.nav-btn.on{color:#fff;border-bottom-color:var(--gold)}
+.nbadge{padding:1px 7px;border-radius:10px;font-size:11px;margin-left:2px}
+.hdr-stats{display:flex;gap:8px;margin-left:auto}
+.sp{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:4px 12px;text-align:center;min-width:60px}
+.sp-n{font-family:'Bebas Neue',cursive;font-size:20px;line-height:1}
+.sp-l{font-size:9px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+
+/* LOGIN */
+.login-wrap{max-width:360px;margin:80px auto;padding:20px}
+.login-box{background:var(--card2);border:1px solid var(--border);border-radius:20px;padding:40px 30px;text-align:center}
+
+/* PAGES */
+.page{display:none}
+.page.on{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.container{max-width:1300px;margin:0 auto;padding:18px 16px 60px}
+
+/* CARDS */
+.card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px}
+.card-title{font-weight:800;font-size:15px;color:#f8fafc;margin-bottom:14px}
+
+/* OVERVIEW */
+.ov-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:18px}
+.ov-box{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;position:relative;overflow:hidden}
+.ov-n{font-family:'Bebas Neue',cursive;font-size:34px;line-height:1}
+.ov-l{font-size:11px;color:var(--muted);font-weight:700;margin-top:2px}
+.ov-icon{position:absolute;top:12px;right:12px;font-size:20px;opacity:.25}
+.ov-bar{position:absolute;bottom:0;left:0;right:0;height:3px}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.fbtn{padding:5px 13px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.fbtn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.fbtn.fV.on{background:#166534;border-color:#166534}
+.fbtn.fR.on{background:#7f1d1d;border-color:#7f1d1d}
+.fbtn.fC.on{background:#374151;border-color:#374151}
+.search-inp{flex:1;min-width:160px;padding:7px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none}
+.search-inp:focus{border-color:var(--blue)}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{background:#0d1220}
+th{padding:9px 9px;text-align:left;font-size:10px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;font-weight:700;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:8px 9px;border-bottom:1px solid #12192a;vertical-align:middle}
+tr:hover td{background:#0d1624}
+.pthumb{width:38px;height:48px;border-radius:5px;object-fit:cover;border:2px solid var(--border);cursor:pointer;transition:border-color .2s}
+.pthumb:hover{border-color:var(--green)}
+.pthumb-ph{width:38px;height:48px;border-radius:5px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:16px}
+
+/* BADGES */
+.rb{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.rBat{background:#1e3a5f;color:#60a5fa}.rBow{background:#3f1515;color:#f87171}
+.rAR{background:#064e3b;color:#34d399}.rWK{background:#451a03;color:#fbbf24}
+.sb{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.sP{background:#422006;color:#fbbf24}.sV{background:#052e16;color:#22c55e}
+.sR{background:#450a0a;color:#f87171}.sC{background:#1c1f26;color:#9ca3af}
+
+/* ACTION BTNS */
+.ab{padding:3px 9px;border-radius:5px;border:none;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+.aV{background:#052e16;border:1px solid var(--green);color:var(--green)}.aV:hover{background:#15803d;color:#fff}
+.aR{background:#450a0a;border:1px solid var(--red);color:var(--red)}.aR:hover{background:#991b1b;color:#fff}
+.aC{background:#1c1f26;border:1px solid #6b7280;color:#9ca3af}.aC:hover{background:#374151;color:#fff}
+.aDel{background:#2d0a0a;border:1px solid #7f1d1d;color:#f87171}.aDel:hover{background:#7f1d1d;color:#fff}
+.aRe{background:#1e2a4a;border:1px solid var(--blue);color:#60a5fa}.aRe:hover{background:#1d4ed8;color:#fff}
+.aVw{background:#1a1a2e;border:1px solid #6366f1;color:#818cf8}.aVw:hover{background:#4338ca;color:#fff}
+.aPh{background:#0a2a1a;border:1px solid var(--green);color:var(--green)}.aPh:hover{background:#15803d;color:#fff}
+
+/* FORMS */
+.lbl{font-size:11px;font-weight:700;letter-spacing:2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;display:block}
+.inp{width:100%;padding:10px 12px;background:#0d1220;border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:15px;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--blue)}
+.inp::placeholder{color:#2d4a52}
+.pinp{width:90px;padding:5px 8px;background:#0d1220;border:1px solid var(--border);border-radius:6px;color:var(--gold);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;outline:none;text-align:center}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;transition:all .2s}
+.btn-g{background:#15803d;color:#fff}.btn-g:hover{background:#16a34a}
+.btn-b{background:#1e3a8a;color:#93c5fd;border:1px solid var(--blue)}.btn-b:hover{background:#1d4ed8;color:#fff}
+.btn-ghost{background:none;border:1px solid var(--border);color:var(--muted)}.btn-ghost:hover{background:#1e2535;color:var(--text)}
+.btn-gold{background:var(--gold);color:#000;font-weight:800}
+.dl-btn{padding:7px 14px;border-radius:8px;border:1px solid var(--green);background:#0a2a1a;color:var(--green);font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+.dl-btn:hover{background:#15803d;color:#fff}
+
+/* SETUP */
+.setup-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:700px){.setup-grid{grid-template-columns:1fr}}
+.prow{display:flex;align-items:center;gap:9px;background:#0d1220;border-radius:8px;padding:7px 11px;margin-bottom:7px}
+.cdot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .2s;flex-shrink:0}
+.cdot.sel{border-color:#fff;box-shadow:0 0 8px #fff4}
+
+/* AUCTION CARDS */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.pcard{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:13px;position:relative;transition:border-color .2s}
+.pcard:hover{border-color:#3b82f655}
+.pc-img{width:90px;height:110px;border-radius:8px;object-fit:cover;border:2px solid var(--green);display:block;margin:0 auto 9px;box-shadow:0 0 14px #22c55e33;cursor:pointer}
+.pc-ph{width:90px;height:110px;border-radius:8px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto 9px;cursor:pointer}
+
+
+/* TEAM CARDS */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:13px}
+.tcard{background:var(--card2);border-radius:12px;overflow:hidden}
+.tcard-head{padding:13px 15px}
+.tcard-body{padding:8px 15px;max-height:260px;overflow-y:auto}
+.bbar{height:4px;background:#1e2a4a;border-radius:4px;overflow:hidden;margin-top:7px}
+.bfill{height:100%;border-radius:4px;transition:width .5s}
+
+/* SOLD/UNSOLD */
+.sold-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin-bottom:16px}
+.sold-card{background:#0d1f0d;border:1px solid #166534;border-radius:9px;padding:9px 12px;display:flex;align-items:center;gap:9px}
+.ugrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ucard{background:#1a0a0a;border:1px solid #7f1d1d;border-radius:10px;padding:13px}
+
+/* SEC HEADER */
+.sec{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sec-t{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:1px;white-space:nowrap}
+.sec-l{flex:1;height:1px;background:var(--border)}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:200;align-items:center;justify-content:center;padding:14px}
+.overlay.open{display:flex}
+.modal{background:var(--card2);border:1px solid var(--border);border-radius:16px;padding:22px;width:100%;max-width:450px;max-height:92vh;overflow-y:auto}
+.mhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.mhdr h3{font-family:'Bebas Neue',cursive;font-size:20px;letter-spacing:2px;color:var(--gold)}
+.xbtn{background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer}
+.irow{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px}
+.il{color:var(--muted);flex-shrink:0;margin-right:8px}
+.iv{font-weight:600;color:#f1f5f9;text-align:right;word-break:break-all}
+textarea.rinp{width:100%;padding:9px;background:#0d1220;border:1px solid #7f1d1d;border-radius:8px;color:var(--text);font-family:'Rajdhani',sans-serif;font-size:14px;outline:none;resize:vertical;min-height:65px;margin-top:7px}
+
+/* CROP */
+.crop-wrap{position:relative;width:100%;height:270px;overflow:hidden;background:#000;border-radius:10px;cursor:grab;touch-action:none;user-select:none}
+.crop-wrap:active{cursor:grabbing}
+.crop-img{position:absolute;left:0;width:100%;pointer-events:none}
+
+
+/* BID MODAL */
+.bpc{background:#0d1324;border-radius:12px;padding:15px;margin-bottom:15px;text-align:center}
+.tpg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tpb{padding:9px 8px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;cursor:pointer;text-align:left;border:1px solid;transition:all .2s}
+
+/* MISC */
+.empty{text-align:center;padding:44px;color:#4b5563}
+.spin{display:inline-block;width:15px;height:15px;border:3px solid #1a2535;border-top-color:var(--blue);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.notif{position:fixed;bottom:18px;right:18px;background:#065f46;border:1px solid var(--green);color:#fff;padding:11px 18px;border-radius:10px;font-weight:700;font-size:14px;z-index:999;display:none;animation:slideUp .3s ease;max-width:300px}
+@keyframes slideUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.rf-btn{padding:5px 12px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer}
+.rf-btn.on{background:#1e3a6e;border-color:var(--blue);color:#60a5fa}
+.del-box{background:#1a0505;border:1px solid #7f1d1d;border-radius:9px;padding:13px;margin-bottom:13px}
+</style>
+<link rel="stylesheet" href="auction-theme.css"/></head>
+<body><div class="workspace-bar"><a href="./#/" target="_top">← boundary / Tournaments</a><strong id="tournamentName">Loading tournament…</strong><span id="saveIndicator" role="status">Connecting…</span><a id="registrationLink" target="_blank">Registration ↗</a></div><div id="saveBlocker" hidden><div>Saving changes…</div></div><div id="persistentError" hidden role="alert"></div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+
+  <div class="hdr">
+    <div style="display:flex;align-items:center;gap:8px;padding-right:14px;border-right:1px solid var(--border)">
+      <span style="font-size:22px">🏏</span>
+      <div class="brand">CRICKET <span>AUCTION</span></div>
+    </div>
+    <nav class="nav">
+      <button class="nav-btn on" onclick="goPage('overview',this)">📊 Overview</button>
+      <button class="nav-btn" onclick="goPage('registrations',this)">📋 Registrations <span class="nbadge" id="nb-reg" style="background:#422006;color:#fbbf24">0</span></button>
+      <button class="nav-btn" onclick="goPage('setup',this)">⚙️ Auction Setup</button>
+      <button class="nav-btn" onclick="goPage('auction',this)">🔨 Live Auction <span class="nbadge" id="nb-pend" style="background:#1e3a5f;color:#60a5fa">0</span></button>
+      <button class="nav-btn" onclick="goPage('teams',this)">🏆 Teams</button>
+      <button class="nav-btn" onclick="goPage('unsold',this)">❌ Unsold <span class="nbadge" id="nb-uns" style="background:#450a0a;color:#f87171">0</span></button>
+    </nav>
+    <div class="hdr-stats">
+      <div class="sp"><div class="sp-n" id="stV" style="color:var(--green)">0</div><div class="sp-l">Verified</div></div>
+      <div class="sp"><div class="sp-n" id="stT" style="color:#60a5fa">0</div><div class="sp-l">Total</div></div>
+      <button onclick="loadData()" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer">🔄</button>
+      <button onclick="loadAuctionFromSheet();loadData();" style="padding:5px 10px;border-radius:6px;border:1px solid #22c55e;background:#052e16;color:#22c55e;cursor:pointer;font-size:12px;font-weight:700">📡 Sync</button>
+    </div>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="page-overview" class="page on">
+    <div class="container">
+      <div class="ov-grid">
+        <div class="ov-box" style="border-color:#1e3a5f66"><div class="ov-icon">📋</div><div class="ov-n" id="ov-total" style="color:#60a5fa">0</div><div class="ov-l">Total</div><div class="ov-bar" style="background:#3b82f6"></div></div>
+        <div class="ov-box" style="border-color:#92400e66"><div class="ov-icon">⏳</div><div class="ov-n" id="ov-pend" style="color:#fbbf24">0</div><div class="ov-l">Pending</div><div class="ov-bar" style="background:#f59e0b"></div></div>
+        <div class="ov-box" style="border-color:#16653466"><div class="ov-icon">✅</div><div class="ov-n" id="ov-ver" style="color:var(--green)">0</div><div class="ov-l">Verified</div><div class="ov-bar" style="background:#22c55e"></div></div>
+        <div class="ov-box" style="border-color:#7f1d1d66"><div class="ov-icon">❌</div><div class="ov-n" id="ov-rej" style="color:var(--red)">0</div><div class="ov-l">Rejected</div><div class="ov-bar" style="background:#ef4444"></div></div>
+        <div class="ov-box" style="border-color:#37415166"><div class="ov-icon">🚫</div><div class="ov-n" id="ov-can" style="color:#9ca3af">0</div><div class="ov-l">Cancelled</div><div class="ov-bar" style="background:#6b7280"></div></div>
+        <div class="ov-box" style="border-color:#4c1d9566"><div class="ov-icon">🏆</div><div class="ov-n" id="ov-teams" style="color:var(--purple)">0</div><div class="ov-l">Teams</div><div class="ov-bar" style="background:#a78bfa"></div></div>
+        <div class="ov-box" style="border-color:#16653466"><div class="ov-icon">🔨</div><div class="ov-n" id="ov-sold" style="color:var(--green)">0</div><div class="ov-l">Sold</div><div class="ov-bar" style="background:#22c55e"></div></div>
+        <div class="ov-box" style="border-color:#7f1d1d66"><div class="ov-icon">💸</div><div class="ov-n" id="ov-uns" style="color:var(--red)">0</div><div class="ov-l">Unsold</div><div class="ov-bar" style="background:#ef4444"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">⚡ Quick Actions</div>
+        <div style="display:flex;gap:9px;flex-wrap:wrap">
+          <button class="btn btn-b" onclick="goPage('registrations',document.querySelectorAll('.nav-btn')[1])">📋 Registrations</button>
+          <button class="btn btn-g" onclick="goPage('setup',document.querySelectorAll('.nav-btn')[2])">⚙️ Setup Auction</button>
+          <button class="btn" style="background:#6d28d9;color:#fff" onclick="goPage('auction',document.querySelectorAll('.nav-btn')[3])">🔨 Live Auction</button>
+          <button class="dl-btn" onclick="downloadCSV()">📥 Download CSV</button>
+        </div>
+      </div>
+      <div class="card"><div class="card-title">🕐 Recent Registrations</div><div id="recentList"></div></div>
+    </div>
+  </div>
+
+  <!-- REGISTRATIONS -->
+  <div id="page-registrations" class="page">
+    <div class="container">
+      <div class="toolbar">
+        <button class="fbtn on" onclick="setFilter('All',this)">All</button>
+        <button class="fbtn" style="border-color:#92400e;color:#fbbf24" onclick="setFilter('Pending',this)">⏳ Pending</button>
+        <button class="fbtn fV" onclick="setFilter('Verified',this)">✅ Verified</button>
+        <button class="fbtn fR" onclick="setFilter('Rejected',this)">❌ Rejected</button>
+        <button class="fbtn fC" onclick="setFilter('Cancelled',this)">🚫 Cancelled</button>
+        <input class="search-inp" id="searchInp" placeholder="Search name, phone, CH #..." oninput="renderTable()"/>
+        <button class="dl-btn" onclick="downloadCSV()">📥 CSV</button>
+      </div>
+      <div id="tableArea"><div class="empty"><div style="font-size:36px">⏳</div><p>Loading...</p></div></div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="page-setup" class="page">
+    <div class="container">
+      <div class="setup-grid">
+        <div>
+          <div class="card">
+            <div class="card-title">📋 Load Verified Players</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;margin-bottom:11px">
+              <div style="flex:1;min-width:110px"><label class="lbl">Default Base ₹</label><input type="number" id="defBase" class="inp" value="3000"/></div>
+              <button class="btn btn-b" onclick="applyAllBase()" style="align-self:flex-end">Apply All</button>
+              <button class="btn btn-g" id="loadBtn" onclick="loadPlayers()" style="align-self:flex-end">📥 Load</button>
+            </div>
+            <div id="loadMsg" style="font-size:13px;margin-bottom:8px;display:none"></div>
+            <div id="playerSetupList" style="max-height:360px;overflow-y:auto"></div>
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title" style="display:flex;justify-content:space-between;align-items:center">
+            <span>🏆 Create Teams</span>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-b" onclick="exportTeams()" style="font-size:12px;padding:5px 10px" title="Export teams to share">📤 Export</button>
+              <button class="btn btn-g" onclick="importTeams()" style="font-size:12px;padding:5px 10px" title="Import teams from another device">📥 Import</button>
+            </div>
+          </div>
+            <div style="display:flex;flex-direction:column;gap:9px;margin-bottom:13px">
+              <div><label class="lbl">Team Name</label><input type="text" id="tName" class="inp" placeholder="e.g. Royal Strikers" onkeydown="if(event.key==='Enter')addTeam()"/></div>
+              <div><label class="lbl">Budget ₹</label><input type="number" id="tBudget" class="inp" value="100000"/></div>
+              <div><label class="lbl">Color</label><div id="colorPick" style="display:flex;gap:5px;flex-wrap:wrap"></div></div>
+              <button class="btn btn-gold" id="addTeamBtn" onclick="addTeam()">+ Add Team</button>
+            </div>
+            <div id="teamSetupList" style="max-height:300px;overflow-y:auto"></div>
+          </div>
+        </div>
+      </div>
+      <div id="startWrap" style="display:none;margin-top:6px">
+        <button class="btn" onclick="goPage('auction',document.querySelectorAll('.nav-btn')[3])" style="width:100%;font-size:18px;padding:15px;background:linear-gradient(135deg,#15803d,#16a34a);color:#fff;border-radius:12px;font-family:'Bebas Neue',cursive;letter-spacing:3px">🏏 START LIVE AUCTION</button>
+      </div>
+      <div id="startHint" style="text-align:center;font-size:13px;color:#4b5563;margin-top:9px"></div>
+      <div style="margin-top:16px;text-align:center">
+        <button class="btn" onclick="resetFullAuction()" style="background:#450a0a;border:1px solid #7f1d1d;color:#f87171;font-size:13px;padding:8px 18px">🗑️ Reset Auction Data</button>
+        <div style="font-size:11px;color:#4b5563;margin-top:5px">Clears all sold/unsold/team data. Use for new auction.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUCTION -->
+  <div id="page-auction" class="page">
+    <div class="container">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:13px;">
+        <div style="display:flex;gap:6px;flex-wrap:wrap;flex:1;">
+          <button class="rf-btn on" onclick="setRole('All',this)">All</button>
+          <button class="rf-btn" onclick="setRole('Batsman',this)">🏏 Batsman</button>
+          <button class="rf-btn" onclick="setRole('Bowler',this)">🎯 Bowler</button>
+          <button class="rf-btn" onclick="setRole('All-Rounder',this)">⚡ All-Rounder</button>
+          <button class="rf-btn" onclick="setRole('Wicket Keeper',this)">🧤 WK</button>
+        </div>
+        <input id="auctionSearch" class="search-inp" style="max-width:260px;" placeholder="🔍 Search name, phone, CH #..." oninput="renderAuction()"/>
+        <button onclick="document.getElementById('auctionSearch').value='';renderAuction();" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+      </div>
+      <div id="auctionWarn"></div>
+      <div id="soldSection"></div>
+      <div class="sec"><span>🟡</span><span class="sec-t">Pending Players</span><div class="sec-l"></div><span id="pendCount" style="font-size:12px;color:var(--muted)"></span></div>
+      <div id="pendingGrid" class="pgrid"></div>
+    </div>
+  </div>
+
+  <!-- TEAMS -->
+  <div id="page-teams" class="page">
+    <div class="container">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <input id="teamSearch" class="search-inp" style="max-width:260px;" placeholder="🔍 Search player in teams..." oninput="renderTeams()"/>
+        <button onclick="document.getElementById('teamSearch').value='';renderTeams();" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+        <button class="dl-btn" onclick="downloadAllTeams()" style="margin-left:auto;">📥 Download All Teams</button>
+      </div>
+      <div id="teamsGrid" class="tgrid"></div>
+    </div>
+  </div>
+
+  <!-- UNSOLD -->
+  <div id="page-unsold" class="page">
+    <div class="container">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <input id="unsoldSearch" class="search-inp" style="max-width:280px;" placeholder="🔍 Search unsold players..." oninput="renderUnsold()"/>
+        <button onclick="document.getElementById('unsoldSearch').value='';renderUnsold();" style="padding:7px 10px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;font-size:13px;">✕</button>
+      </div>
+      <div id="unsoldGrid" class="ugrid"></div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- MODALS -->
+<div class="overlay" id="detailModal"><div class="modal"><div class="mhdr"><h3 id="dmTitle">Player</h3><button class="xbtn" onclick="closeM('detailModal')">✕</button></div><div id="dmBody"></div></div></div>
+<div class="overlay" id="rejectModal"><div class="modal" style="max-width:370px"><div class="mhdr"><h3>Reject Player</h3><button class="xbtn" onclick="closeM('rejectModal')">✕</button></div><p style="font-size:13px;color:var(--muted)">Reason (optional):</p><textarea class="rinp" id="rejectReason" placeholder="e.g. Invalid UTR..."></textarea><div style="display:flex;gap:9px;margin-top:13px"><button class="btn" style="flex:1;background:#7f1d1d;color:#fca5a5" onclick="confirmReject()">Confirm Reject</button><button class="btn btn-ghost" style="flex:1" onclick="closeM('rejectModal')">Back</button></div></div></div>
+<div class="overlay" id="deleteModal"><div class="modal" style="max-width:350px"><div class="mhdr"><h3>Delete Player</h3><button class="xbtn" onclick="closeM('deleteModal')">✕</button></div><div class="del-box"><div style="color:#fca5a5;font-weight:700;margin-bottom:4px">Cannot be undone!</div><div id="delName" style="font-size:16px;color:#f8fafc;font-weight:800"></div></div><div style="display:flex;gap:9px"><button class="btn aDel" onclick="confirmDelete()" style="flex:1;padding:10px;font-size:14px">Delete</button><button class="btn btn-ghost" onclick="closeM('deleteModal')" style="flex:1;padding:10px">Cancel</button></div></div></div>
+<div class="overlay" id="payModal"><div class="modal" style="max-width:400px;text-align:center"><div class="mhdr"><h3 id="payTitle">Payment</h3><button class="xbtn" onclick="closeM('payModal')">✕</button></div><img loading="lazy" id="payImg" style="max-width:100%;border-radius:10px;border:2px solid var(--gold)"/><div id="payUTR" style="margin-top:9px;font-size:13px;color:var(--muted)"></div></div></div>
+
+<!-- BID MODAL -->
+<div class="overlay" id="bidModal">
+  <div class="modal" style="max-width:500px">
+    <div class="mhdr"><h3>Live Bid</h3><button class="xbtn" onclick="closeM('bidModal')">✕</button></div>
+    <div class="bpc">
+      <div id="bidPhotoWrap" style="display:flex;justify-content:center;margin-bottom:10px"></div>
+      <div id="bidName" style="font-size:22px;font-weight:800;color:#f8fafc"></div>
+      <div id="bidCricNum" style="font-size:12px;color:var(--muted);margin-top:2px"></div>
+      <div id="bidPhone" style="font-size:12px;color:#94a3b8;margin-top:3px"></div>
+      <div id="bidRole" style="margin-top:8px"></div>
+      <div id="bidAvail" style="display:none;margin-top:7px;color:#60a5fa;font-size:12px;font-weight:700"><span></span></div>
+      <div style="margin-top:10px;font-size:13px;color:var(--muted)">Base Price: <b id="bidBase" style="color:var(--gold)">₹0</b></div>
+    </div>
+    <label class="lbl">Final Bid Amount ₹</label>
+    <input id="bidInp" type="number" class="inp" oninput="checkBid()"/>
+    <div id="bidWarn" style="display:none;color:var(--red);font-size:12px;margin-top:6px">⚠ Bid amount is below the base price.</div>
+    <div id="bidActions" style="display:flex;gap:9px;margin-top:14px">
+      <button class="btn btn-g" onclick="handleSold()" style="flex:1">✅ SOLD</button>
+      <button class="btn" onclick="handleUnsold()" style="flex:1;background:#7f1d1d;color:#fca5a5">❌ UNSOLD</button>
+    </div>
+    <div id="teamPickWrap" style="display:none;margin-top:14px">
+      <div id="teamPickLabel" style="font-size:13px;color:var(--muted);margin-bottom:9px"></div>
+      <div id="teamPickGrid" class="tpg"></div>
+      <button class="btn btn-ghost" onclick="showBidActions()" style="width:100%;margin-top:10px">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD PLAYER TO TEAM MODAL -->
+<div class="overlay" id="freeAddModal">
+  <div class="modal" style="max-width:480px">
+    <div class="mhdr"><h3 id="freeAddTitle">Add Player</h3><button class="xbtn" onclick="closeM('freeAddModal')">✕</button></div>
+    <input type="hidden" id="freeAddTeamId"/><input type="hidden" id="freeSelectedPlayerId"/>
+    <input id="freeSearch" class="inp" placeholder="Search verified player..." oninput="renderFreeList()"/>
+    <div id="freePlayerList" style="max-height:240px;overflow-y:auto;background:#0d1220;border:1px solid var(--border);border-radius:8px;margin-top:8px"></div>
+    <div id="freeSelectedPreview" style="display:none;align-items:center;gap:9px;background:#052e16;border:1px solid #166534;border-radius:8px;padding:9px;margin-top:10px">
+      <div id="freeSelPhoto" style="width:36px;height:46px;display:flex;align-items:center;justify-content:center;background:#1a2535;border-radius:5px">🧑</div>
+      <div style="flex:1"><div id="freeSelName" style="font-weight:800"></div><div id="freeSelRole"></div></div>
+      <button class="xbtn" onclick="clearFreeSelection()">✕</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:11px">
+      <div><label class="lbl">Amount ₹</label><input id="freeAmount" type="number" class="inp" value="0"/></div>
+      <div><label class="lbl">Comment</label><input id="freeComment" class="inp" placeholder="Optional"/></div>
+    </div>
+    <button class="btn btn-g" onclick="confirmFreeAdd()" style="width:100%;margin-top:13px">✅ Add to Team</button>
+  </div>
+</div>
+
+<!-- AUCTION FEEDBACK -->
+<div id="notif" class="notif"></div>
+<div id="soldCelebration" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.86);z-index:500;cursor:pointer">
+  <canvas id="confettiCanvas" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></canvas>
+  <div id="soldCard" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);width:min(88%,390px);background:#071b10;border:3px solid var(--green);border-radius:22px;padding:28px;text-align:center;box-shadow:0 0 60px #22c55e66">
+    <div style="font-family:'Bebas Neue',cursive;font-size:48px;color:var(--green);letter-spacing:5px">SOLD!</div>
+    <div id="soldPlayerName" style="font-size:25px;font-weight:800;color:#fff"></div>
+    <div id="soldPlayerRole" style="margin-top:7px"></div>
+    <div id="soldPriceEl" style="font-family:'Bebas Neue',cursive;font-size:38px;color:var(--gold);margin-top:10px"></div>
+    <div id="soldTeamEl" style="font-size:20px;margin-top:4px"></div>
+  </div>
+</div>
+<div id="unsoldStamp" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:500;cursor:pointer">
+  <div id="stampEl" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(3) rotate(-15deg);opacity:0;text-align:center;border:7px solid var(--red);border-radius:18px;padding:25px 35px;color:var(--red)">
+    <div style="font-family:'Bebas Neue',cursive;font-size:55px;letter-spacing:6px">UNSOLD</div>
+    <div id="unsoldPlayerName" style="font-size:22px;font-weight:800;color:#fca5a5"></div>
+  </div>
+</div>
+
+<!-- FULL PHOTO MODAL -->
+<div class="overlay" id="photoModal" style="cursor:pointer" onclick="closeM('photoModal')">
+  <div style="position:relative;max-width:340px;width:90%;margin:auto;top:50%;transform:translateY(-50%)" onclick="event.stopPropagation()">
+    <div style="background:#111827;border:2px solid var(--green);border-radius:16px;padding:18px;text-align:center">
+      <div style="font-family:'Bebas Neue',cursive;font-size:18px;letter-spacing:2px;color:var(--green);margin-bottom:12px" id="photoModalName">Player Photo</div>
+      <img loading="lazy" id="photoModalImg" style="width:100%;max-width:280px;border-radius:12px;object-fit:contain;border:3px solid var(--green);box-shadow:0 0 30px rgba(34,197,94,.3)"/>
+      <div id="photoModalStatus" style="margin-top:10px;font-size:13px;color:var(--muted)"></div>
+      <button onclick="closeM('photoModal')" style="margin-top:12px;padding:8px 24px;background:var(--card);border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-size:13px;font-weight:700">✕ Close</button>
+    </div>
+  </div>
+</div>
+<script>
+var SCRIPT_URL="";
+
+var COLORS=["#FF6B35","#4ECDC4","#FFE66D","#A78BFA","#F472B6","#34D399","#F97316","#60A5FA","#E879F9","#FB923C"];
+var RBC={Batsman:"rBat",Bowler:"rBow","All-Rounder":"rAR","Wicket Keeper":"rWK"};
+var allPlayers=[],auctPlayers=[],teams=[],curFilter="All",roleFilter="All";
+var rejectTarget=null,deleteTarget=null,selColor=COLORS[0],bidPlayer=null;
+var freeSelectedPlayer=null;
+var confettiTimer=null,confettiInterval=null,unsoldTimer=null;
+
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fmt(n){return "₹"+Number(n).toLocaleString("en-IN");}
+function rbc(r){return RBC[r]||"rBat";}
+function sclass(s){return {Pending:"sP",Verified:"sV",Rejected:"sR",Cancelled:"sC"}[s]||"sP";}
+function sicon(s){return {Pending:"⏳",Verified:"✅",Rejected:"❌",Cancelled:"🚫"}[s]||"⏳";}
+function notify(m){var el=document.getElementById("notif");if(!el)return;el.textContent=m;el.style.display="block";setTimeout(function(){el.style.display="none";},3000);}
+function closeM(id){var el=document.getElementById(id);if(el)el.classList.remove("open");}
+
+// LOGIN
+function doLogin(){loadData();}
+// NAVIGATION
+function goPage(name,btn){
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("on");});
+  document.querySelectorAll(".nav-btn").forEach(function(b){b.classList.remove("on");});
+  document.getElementById("page-"+name).classList.add("on");
+  if(btn)btn.classList.add("on");
+  if(name==="setup"){renderTeamSetup();renderPlayerSetup();renderStartHint();}
+  if(name==="auction"){autoSyncVerified();renderAuction();}
+  if(name==="teams")renderTeams();
+  if(name==="unsold")renderUnsold();
+}
+
+// HARD RESET
+function hardReset(){
+  if(!confirm("Clear all local auction data and reload?\nRegistrations will NOT be deleted."))return;
+  try{localStorage.removeItem("upl_teams");localStorage.removeItem("upl_auctState");}catch(e){}
+  teams=[];auctPlayers=[];
+  notify("🗑 Cache cleared! Reloading...");
+  setTimeout(function(){location.reload();},1000);
+}
+
+// PHOTO PREVIEW
+function openPhoto(src,name,checkValid){
+  if(!src||!isPhotoURL(src)){notify("⚠ No photo for "+(name||"this player"));return;}
+  document.getElementById("photoModalImg").src=src;
+  document.getElementById("photoModalName").textContent=name||"Player Photo";
+  var ok=src&&isPhotoURL(src);
+  document.getElementById("photoModalStatus").innerHTML=ok
+    ?"<span style='color:var(--green)'>✅ Photo uploaded correctly</span>"
+    :"<span style='color:var(--red)'>⚠️ Photo looks incorrect</span>";
+  document.getElementById("photoModal").classList.add("open");
+}
+
+// AUCTION STATE
+function saveAuctionState(){
+  var lightState=auctPlayers.map(function(p){
+    return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,
+      availability:p.availability||"",status:p.status,soldTo:p.soldTo,
+      soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false,comment:p.comment||""};
+  });
+  try{
+    localStorage.setItem("upl_teams",JSON.stringify(teams));
+    localStorage.setItem("upl_auctState",JSON.stringify(lightState));
+  }catch(e){try{localStorage.removeItem("upl_auctState");}catch(e2){}}
+  saveAuctionToSheet(teams,lightState);
+}
+function saveAuctionToSheet(t,a){
+  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"saveAuction",teams:t,auctState:a})}).catch(function(){});
+}
+function loadAuctionState(){
+  try{
+    var t=localStorage.getItem("upl_teams");if(t)teams=JSON.parse(t);
+    var a=localStorage.getItem("upl_auctState");if(a)mergeAuctState(JSON.parse(a));
+  }catch(e){console.warn(e);}
+}
+function mergeAuctState(auctState){
+  auctState.forEach(function(s){
+    var exists=auctPlayers.find(function(p){return p.id===s.id;});
+    if(exists){
+      auctPlayers=auctPlayers.map(function(p){
+        if(p.id!==s.id)return p;
+        return Object.assign({},p,{status:s.status||"pending",soldTo:s.soldTo||null,
+          soldPrice:s.soldPrice||0,basePrice:s.basePrice||p.basePrice,
+          isFree:s.isFree||false,comment:s.comment||p.comment||""});
+      });
+    }else{
+      var reg=allPlayers.find(function(x){return x.RegID===s.id;});
+      auctPlayers.push({id:s.id,name:s.name||"Player",phone:s.phone||"",
+        role:s.role||"Batsman",photo:(reg&&reg.PhotoURL)||"",cricNum:s.cricNum||"",
+        availability:s.availability||"",basePrice:s.basePrice||3000,
+        status:s.status||"pending",soldTo:s.soldTo||null,soldPrice:s.soldPrice||0,
+        isFree:s.isFree||false,comment:s.comment||""});
+    }
+  });
+}
+function clearAuctionState(){
+  try{localStorage.removeItem("upl_teams");localStorage.removeItem("upl_auctState");}catch(e){}
+}
+function loadAuctionFromSheet(){
+  notify("📡 Syncing from sheet...");
+  fetch(SCRIPT_URL+"?action=loadAuction")
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(!data.success){notify("⚠ Sync failed");return;}
+
+    var sheetTeams = data.teams||[];
+    var sheetAuct  = data.auctState||[];
+
+    // SHEET IS SOURCE OF TRUTH
+    // If sheet has empty teams → reset happened → clear local too
+    if(sheetTeams.length===0 && sheetAuct.filter(function(s){return s.status==="sold";}).length===0){
+      // Sheet is empty/reset — clear local state
+      teams=[];
+      auctPlayers=auctPlayers.map(function(p){return Object.assign({},p,{status:"pending",soldTo:null,soldPrice:0});});
+      auctPlayers=auctPlayers.filter(function(p){return !p.isFree;});
+      try{localStorage.removeItem("upl_teams");localStorage.removeItem("upl_auctState");}catch(e){}
+      updateStats();updateBadges();renderTeamSetup();renderTeams();renderAuction();renderUnsold();
+      notify("✅ Synced — auction cleared by admin");
+      return;
+    }
+
+    // Sheet has data — merge it in
+    var changed=false;
+
+    // Sync teams from sheet (sheet wins)
+    sheetTeams.forEach(function(st){
+      var ex=teams.find(function(t){return t.id===st.id;});
+      if(!ex){teams.push(st);changed=true;}
+      else if(ex.budget!==st.budget){teams=teams.map(function(t){return t.id===st.id?st:t;});changed=true;}
+    });
+    // Remove teams that are no longer in sheet
+    if(teams.length!==sheetTeams.length){
+      var sheetIds=sheetTeams.map(function(t){return t.id;});
+      var before=teams.length;
+      teams=teams.filter(function(t){return sheetIds.includes(t.id);});
+      if(teams.length!==before)changed=true;
+    }
+
+    // Sync auction state from sheet (sheet wins)
+    sheetAuct.forEach(function(s){
+      var ex=auctPlayers.find(function(p){return p.id===s.id;});
+      if(ex){
+        if(ex.status!==s.status||ex.soldTo!==s.soldTo){
+          auctPlayers=auctPlayers.map(function(p){
+            return p.id===s.id?Object.assign({},p,{status:s.status,soldTo:s.soldTo,
+              soldPrice:s.soldPrice,basePrice:s.basePrice,isFree:s.isFree||false}):p;
+          });
+          changed=true;
+        }
+      }else if(s.status==="sold"||s.status==="unsold"||s.isFree){
+        auctPlayers.push(Object.assign({},s));changed=true;
+      }
+    });
+    // Reset players that sheet says are pending but local says sold
+    var sheetSoldIds=sheetAuct.filter(function(s){return s.status==="sold";}).map(function(s){return s.id;});
+    auctPlayers=auctPlayers.map(function(p){
+      if(p.status==="sold"&&!sheetSoldIds.includes(p.id)&&!p.isFree){
+        changed=true;
+        return Object.assign({},p,{status:"pending",soldTo:null,soldPrice:0});
+      }
+      return p;
+    });
+
+    if(changed){
+      try{
+        localStorage.setItem("upl_teams",JSON.stringify(teams));
+        var as=auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};});
+        localStorage.setItem("upl_auctState",JSON.stringify(as));
+      }catch(e){}
+      updateStats();updateBadges();renderTeamSetup();renderTeams();renderAuction();renderUnsold();
+      notify("✅ Synced! "+teams.length+" teams");
+    }else{
+      notify("✅ Already up to date");
+    }
+  }).catch(function(){notify("⚠ Sync failed");});
+}
+function autoSyncVerified(){
+  var base=parseInt(document.getElementById("defBase")?document.getElementById("defBase").value:3000)||3000;
+  allPlayers.forEach(function(p){
+    if(p.Status!=="Verified")return;
+    var already=auctPlayers.find(function(x){return x.id===p.RegID;});
+    if(!already){
+      auctPlayers.push({id:p.RegID,name:p.Name||"Unknown",phone:p.Phone||"",
+        role:p.PlayerType||"Batsman",photo:p.PhotoURL||"",cricNum:p.CricHeroesNum||"",
+        availability:p.Availability||"",basePrice:base,status:"pending",soldTo:null,soldPrice:0});
+    }else{
+      auctPlayers=auctPlayers.map(function(ap){
+        if(ap.id!==p.RegID)return ap;
+        return Object.assign({},ap,{name:p.Name||ap.name,phone:p.Phone||ap.phone,
+          role:p.PlayerType||ap.role,photo:p.PhotoURL||ap.photo,
+          cricNum:p.CricHeroesNum||ap.cricNum,availability:p.Availability||ap.availability||""});
+      });
+    }
+  });
+  auctPlayers=auctPlayers.filter(function(ap){
+    if(ap.status!=="pending")return true;
+    if(ap.isFree)return true;
+    var reg=allPlayers.find(function(p){return p.RegID===ap.id;});
+    return reg&&reg.Status==="Verified";
+  });
+}
+
+// Fetch registrations in small pages. A single response containing every
+// base64 player photo can exceed Apps Script's response capacity and appear
+// in the browser as a CORS error even though the endpoint says 200 OK.
+async function fetchAllPlayers(){
+  var combined=[],offset=0,limit=20,safety=0;
+  do{
+    var url=SCRIPT_URL+"?action=getAll&offset="+offset+"&limit="+limit+"&t="+Date.now();
+    var res=await fetch(url);
+    if(!res.ok)throw new Error("Server error: "+res.status);
+    var data=await res.json();
+    if(!data.success)throw new Error(data.error||"Failed");
+    var page=data.data||[];
+    combined=combined.concat(page);
+    offset+=page.length;
+    safety++;
+    if(!data.hasMore||page.length===0)return combined;
+  }while(safety<500);
+  throw new Error("Too many registration pages");
+}
+
+// LOAD DATA
+async function loadData(){
+  document.getElementById("tableArea").innerHTML='<div class="empty"><div style="font-size:34px">⏳</div><p>Loading players...</p></div>';
+  var retries=0;
+  async function tryFetch(){
+    try{
+      var freshData=await fetchAllPlayers();
+      // Only clear local state if sheet is confirmed empty AND we have no players
+      if(freshData.length===0 && allPlayers.length===0){
+        clearAuctionState();auctPlayers=[];teams=[];
+        notify("Sheet is empty — no registrations yet");
+      }
+      allPlayers=freshData;
+      updateAll();
+      loadAuctionFromSheet();
+    }catch(e){
+      retries++;
+      if(retries<3){
+        // Retry after 2 seconds
+        notify("⏳ Retrying... ("+retries+"/3)");
+        setTimeout(tryFetch, 2000);
+      }else{
+        // Show cached data if available
+        if(allPlayers.length>0){
+          notify("⚠ Network error — showing cached data");
+          updateAll();
+        }else{
+          document.getElementById("tableArea").innerHTML=
+            '<div class="empty"><div style="font-size:34px">⚠️</div>'
+            +'<p style="color:var(--red)">Cannot connect to server</p>'
+            +'<p style="font-size:12px;color:var(--muted);margin-top:8px">Check: Apps Script deployed with <b>Who has access = Anyone</b></p>'
+            +'<button onclick="loadData()" style="margin-top:12px;padding:8px 20px;background:var(--blue);border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:700">🔄 Retry</button>'
+            +'</div>';
+        }
+      }
+    }
+  }
+  tryFetch();
+}
+function updateAll(){updateStats();renderTable();renderRecent();loadAuctionState();autoSyncVerified();updateStats();updateBadges();}
+function updateStats(){
+  var t=allPlayers.length;
+  var pend=allPlayers.filter(function(p){return p.Status==="Pending";}).length;
+  var ver=allPlayers.filter(function(p){return p.Status==="Verified";}).length;
+  var rej=allPlayers.filter(function(p){return p.Status==="Rejected";}).length;
+  var can=allPlayers.filter(function(p){return p.Status==="Cancelled";}).length;
+  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+  set("ov-total",t);set("ov-pend",pend);set("ov-ver",ver);set("ov-rej",rej);set("ov-can",can);
+  set("ov-teams",teams.length);
+  set("ov-sold",auctPlayers.filter(function(p){return p.status==="sold";}).length);
+  set("ov-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
+  set("stV",ver);set("stT",t);
+}
+function updateBadges(){
+  function set(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+  set("nb-reg",allPlayers.filter(function(p){return p.Status==="Pending";}).length);
+  set("nb-pend",auctPlayers.filter(function(p){return p.status==="pending";}).length);
+  set("nb-uns",auctPlayers.filter(function(p){return p.status==="unsold";}).length);
+}
+
+// FILTER
+function setFilter(f,el){
+  curFilter=f;
+  document.querySelectorAll(".fbtn").forEach(function(b){b.classList.remove("on");});
+  el.classList.add("on");renderTable();
+}
+
+// RENDER RECENT
+function renderRecent(){
+  var el=document.getElementById("recentList");if(!el)return;
+  var recent=allPlayers.slice().reverse().slice(0,8);
+  if(!recent.length){el.innerHTML='<div class="empty" style="padding:16px"><p>No registrations yet</p></div>';return;}
+  el.innerHTML="";
+  var wrap=document.createElement("div");
+  wrap.style.cssText="display:flex;flex-direction:column;gap:6px";
+  recent.forEach(function(p){
+    var hasPhoto=p.PhotoURL&&isPhotoURL(p.PhotoURL);
+    var row=document.createElement("div");
+    row.style.cssText="display:flex;align-items:center;gap:9px;padding:7px 10px;background:#0d1220;border-radius:8px";
+    var photoDiv=document.createElement("div");photoDiv.style.flexShrink="0";
+    if(hasPhoto){
+      var img=document.createElement("img");
+      img.src=previewURL(p.PhotoURL);
+      img.style.cssText="width:32px;height:40px;border-radius:4px;object-fit:cover;border:2px solid var(--border);cursor:pointer";
+      img.title="View photo";
+      img.addEventListener("click",function(){openPhoto(p.PhotoURL,p.Name,true);});
+      photoDiv.appendChild(img);
+    }else{
+      photoDiv.innerHTML='<div style="width:32px;height:40px;border-radius:4px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px">🧑</div>';
+    }
+    row.appendChild(photoDiv);
+    var info=document.createElement("div");info.style.flex="1";
+    info.innerHTML='<span style="font-weight:700;font-size:13px;color:#f1f5f9">'+esc(p.Name||"—")+'</span> <span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span>';
+    row.appendChild(info);
+    var status=document.createElement("span");
+    status.className="sb "+sclass(p.Status);
+    status.textContent=sicon(p.Status)+" "+(p.Status||"Pending");
+    row.appendChild(status);
+    var btns=document.createElement("div");btns.style.cssText="display:flex;gap:3px";
+    if(p.Status!=="Verified"){var vb=document.createElement("button");vb.className="ab aV";vb.textContent="✅";vb.addEventListener("click",function(){doStatus(p.RegID,"Verified");});btns.appendChild(vb);}
+    if(p.Status!=="Rejected"){var rb=document.createElement("button");rb.className="ab aR";rb.textContent="❌";rb.addEventListener("click",function(){openReject(p.RegID);});btns.appendChild(rb);}
+    row.appendChild(btns);
+    wrap.appendChild(row);
+  });
+  el.appendChild(wrap);
+}
+
+// RENDER TABLE
+function renderTable(){
+  var q=(document.getElementById("searchInp")?document.getElementById("searchInp").value||"":"").toLowerCase();
+  var rows=allPlayers.filter(function(p){
+    var mf=curFilter==="All"||p.Status===curFilter;
+    var ms=!q||[p.Name,p.CricHeroesNum,p.Phone,p.PlayerType,p.RegID].some(function(v){return v&&String(v).toLowerCase().includes(q);});
+    return mf&&ms;
+  });
+  var el=document.getElementById("tableArea");
+  if(!rows.length){el.innerHTML='<div class="empty"><div style="font-size:36px">🏏</div><p>No players found</p></div>';return;}
+  var html='<div class="tw"><table><thead><tr><th>#</th><th>Photo</th><th>Player</th><th>CH No</th><th>Phone</th><th>Type</th><th>UTR</th><th>Pay</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+  rows.forEach(function(p,i){
+    var hasPhoto=p.PhotoURL&&isPhotoURL(p.PhotoURL);
+    html+='<tr>'
+      +'<td style="color:var(--muted);font-size:12px">'+(i+1)+'</td>'
+      +'<td style="text-align:center" class="photo-td" data-regid="'+p.RegID+'" data-name="'+esc(p.Name)+'">'
+        +(hasPhoto
+          ?'<img loading="lazy" src="'+previewURL(p.PhotoURL)+'" class="reg-photo-thumb" style="width:38px;height:48px;border-radius:5px;object-fit:cover;border:2px solid var(--green);cursor:pointer;display:block;margin:0 auto 3px" title="View photo"/>'
+            +'<div><span class="view-photo-btn" style="cursor:pointer;color:var(--blue);font-size:10px;font-weight:700">👁</span></div>'
+          :'<div title="No photo"><div style="width:38px;height:48px;border-radius:5px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:16px;margin:0 auto">🧑</div>'
+            +'<div style="font-size:9px;color:var(--red);margin-top:2px">No photo</div></div>')
+      +'</td>'
+      +'<td><div style="font-weight:700;color:#f1f5f9">'+esc(p.Name||"—")+'</div><div style="font-size:11px;color:var(--muted)">'+esc(p.RegID||"")+'</div></td>'
+      +'<td style="font-weight:700;color:var(--gold)">'+esc(p.CricHeroesNum||"—")+'</td>'
+      +'<td><div>'+esc(p.Phone||"—")+'</div>'+(p.AltPhone?'<div style="font-size:11px;color:var(--muted)">'+esc(p.AltPhone)+'</div>':"")+'</td>'
+      +'<td><span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span></td>'
+      +'<td style="font-family:monospace;font-size:12px;color:var(--gold)">'+esc(p.UTR||"—")+'</td>'
+      +'<td>'+(p.PayScreenshotURL&&isPhotoURL(p.PayScreenshotURL)?'<button class="ab aVw" onclick="viewPay(\''+p.RegID+'\')">🧾</button>':'<span style="color:var(--muted);font-size:11px">—</span>')+'</td>'
+      +'<td style="font-size:11px;color:var(--muted);white-space:nowrap">'+esc((p.Timestamp||"").substring(0,16))+'</td>'
+      +'<td><span class="sb '+sclass(p.Status)+'">'+sicon(p.Status)+' '+(p.Status||"Pending")+'</span>'+(p.RejectionReason?'<div style="font-size:10px;color:#f87171">'+esc(p.RejectionReason)+'</div>':"")+'</td>'
+      +'<td><div style="display:flex;gap:3px;flex-wrap:wrap">'
+        +(p.Status!=="Verified"?'<button class="ab aV" onclick="doStatus(\''+p.RegID+'\',\'Verified\')">✅</button>':"")
+        +(p.Status!=="Rejected"?'<button class="ab aR" onclick="openReject(\''+p.RegID+'\')">❌</button>':"")
+        +(p.Status!=="Cancelled"?'<button class="ab aC" onclick="doStatus(\''+p.RegID+'\',\'Cancelled\')">🚫</button>':"")
+        +(p.Status!=="Pending"?'<button class="ab aRe" onclick="doStatus(\''+p.RegID+'\',\'Pending\')">🔄</button>':"")
+        +'<button class="ab aVw" onclick="viewPlayer(\''+p.RegID+'\')">👁</button>'
+        +'<button class="ab aDel" onclick="openDelete(\''+p.RegID+'\')">🗑️</button>'
+      +'</div></td>'
+    +'</tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+  el.querySelectorAll(".photo-td").forEach(function(td){
+    var name=td.getAttribute("data-name");
+    var img=td.querySelector(".reg-photo-thumb");
+    if(img){img.addEventListener("click",function(){openPhoto(img.src,name,true);});}
+    var vb=td.querySelector(".view-photo-btn");
+    if(vb){vb.addEventListener("click",function(){if(img)openPhoto(img.src,name,true);else notify("⚠ No photo for "+name);});}
+  });
+}
+
+// STATUS
+async function doStatus(regId,status,reason){
+  reason=reason||"";
+  var p=allPlayers.find(function(x){return x.RegID===regId;});if(!p)return;
+  var orig=p.Status;p.Status=status;if(reason)p.RejectionReason=reason;
+  if(status==="Verified"){
+    var already=auctPlayers.find(function(x){return x.id===regId;});
+    if(!already){
+      var base=parseInt(document.getElementById("defBase")?document.getElementById("defBase").value:3000)||3000;
+      auctPlayers.push({id:p.RegID,name:p.Name||"Unknown",phone:p.Phone||"",
+        role:p.PlayerType||"Batsman",photo:p.PhotoURL||"",cricNum:p.CricHeroesNum||"",
+        availability:p.Availability||"",basePrice:base,status:"pending",soldTo:null,soldPrice:0});
+    }
+  }
+  if(status==="Rejected"||status==="Cancelled"){
+    auctPlayers=auctPlayers.filter(function(x){return !(x.id===regId&&x.status==="pending");});
+  }
+  updateAll();
+  try{
+    var res=await fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"updateStatus",regId:regId,status:status,reason:reason,verifiedBy:"Admin"})});
+    var data=await res.json();
+    if(!data.success){p.Status=orig;updateAll();alert("Failed: "+data.error);}
+    else notify(sicon(status)+" "+escJs(p.Name)+" — "+status);
+  }catch(e){p.Status=orig;updateAll();alert("Error: "+e.message);}
+}
+function openReject(id){rejectTarget=id;document.getElementById("rejectReason").value="";document.getElementById("rejectModal").classList.add("open");}
+function closeRM(){closeM("rejectModal");rejectTarget=null;}
+function confirmReject(){var r=document.getElementById("rejectReason").value.trim();closeM("rejectModal");if(rejectTarget)doStatus(rejectTarget,"Rejected",r);rejectTarget=null;}
+function openDelete(id){deleteTarget=id;var p=allPlayers.find(function(x){return x.RegID===id;});document.getElementById("delName").textContent=p?p.Name:"Unknown";document.getElementById("deleteModal").classList.add("open");}
+function closeDel(){closeM("deleteModal");}
+function confirmDelete(){
+  if(!deleteTarget)return;
+  var regId=deleteTarget;
+  var pName=(allPlayers.find(function(p){return p.RegID===regId;})||{}).Name||"Player";
+  allPlayers=allPlayers.filter(function(p){return p.RegID!==regId;});
+  auctPlayers=auctPlayers.filter(function(p){return p.id!==regId;});
+  try{var sa=localStorage.getItem("upl_auctState");if(sa){var as=JSON.parse(sa).filter(function(p){return p.id!==regId;});localStorage.setItem("upl_auctState",JSON.stringify(as));}}catch(e){}
+  closeDel();updateAll();saveAuctionState();notify("🗑️ "+pName+" deleted!");deleteTarget=null;
+  fetch(SCRIPT_URL,{method:"POST",body:JSON.stringify({action:"deletePlayer",regId:regId})}).catch(function(){});
+}
+function viewPlayer(id){
+  var p=allPlayers.find(function(x){return x.RegID===id;});if(!p)return;
+  document.getElementById("dmTitle").textContent=p.Name||"Player";
+  var hasPhoto=p.PhotoURL&&isPhotoURL(p.PhotoURL);
+  var html='<div style="text-align:center;margin-bottom:13px">'
+    +(hasPhoto
+      ?'<img loading="lazy" src="'+previewURL(p.PhotoURL)+'" style="width:120px;border-radius:8px;object-fit:cover;border:3px solid var(--green);cursor:pointer" onclick="openPhoto(\''+p.PhotoURL+'\',\''+escJs(p.Name)+'\',true)"/>'
+        +'<div style="display:flex;gap:8px;justify-content:center;margin-top:7px">'
+        +'<button onclick="openPhoto(\''+p.PhotoURL+'\',\''+escJs(p.Name)+'\',true)" style="background:var(--card);border:1px solid var(--green);color:var(--green);padding:3px 10px;border-radius:6px;cursor:pointer;font-size:11px;font-weight:700">👁 View Photo</button>'
+        +'</div>'
+      :'<div style="width:80px;height:100px;border-radius:8px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:34px;margin:0 auto">🧑</div>'
+        +'<div style="font-size:11px;color:var(--red);margin-top:4px">No photo uploaded</div>')
+    +'</div>';
+  [["RegID",p.RegID],["Name",p.Name],["CH #",p.CricHeroesNum],["Phone",p.Phone],
+   ["Alt Phone",p.AltPhone||"—"],["Type",p.PlayerType],["Address",p.Address],
+   ["UTR",p.UTR],["Status",p.Status],["Registered",p.Timestamp]
+  ].forEach(function(row){html+='<div class="irow"><span class="il">'+row[0]+'</span><span class="iv">'+esc(row[1]||"—")+'</span></div>';});
+  if(p.PayScreenshotURL&&isPhotoURL(p.PayScreenshotURL))
+    html+='<div style="margin-top:12px"><div style="font-size:10px;color:var(--muted);margin-bottom:5px">PAYMENT</div><img loading="lazy" src="'+p.PayScreenshotURL+'" style="max-width:100%;border-radius:8px;border:2px solid var(--gold)"/></div>';
+  html+='<div style="display:flex;gap:6px;margin-top:14px;flex-wrap:wrap">'
+    +(p.Status!=="Verified"?'<button class="ab aV" onclick="doStatus(\''+p.RegID+'\',\'Verified\');closeM(\'detailModal\')">✅ Verify</button>':"")
+    +(p.Status!=="Rejected"?'<button class="ab aR" onclick="closeM(\'detailModal\');openReject(\''+p.RegID+'\')">❌ Reject</button>':"")
+    +(p.Status!=="Cancelled"?'<button class="ab aC" onclick="doStatus(\''+p.RegID+'\',\'Cancelled\');closeM(\'detailModal\')">🚫 Cancel</button>':"")
+    +'<button class="ab aDel" onclick="closeM(\'detailModal\');openDelete(\''+p.RegID+'\')">🗑️ Delete</button></div>';
+  document.getElementById("dmBody").innerHTML=html;
+  document.getElementById("detailModal").classList.add("open");
+}
+async function viewPay(id){
+  var p=allPlayers.find(function(x){return x.RegID===id;});if(!p)return;
+  document.getElementById("payTitle").textContent="Payment — "+p.Name;
+  document.getElementById("payImg").removeAttribute("src");
+  document.getElementById("payUTR").innerHTML="UTR: <b style=\"color:var(--gold)\">"+esc(p.UTR||"—")+"</b>";
+  document.getElementById("payModal").classList.add("open");
+  try{
+    var res=await fetch(SCRIPT_URL+"?action=getPayment&regId="+encodeURIComponent(id)+"&t="+Date.now());
+    var data=await res.json();
+    if(!data.success||!data.payScreenshotURL)throw new Error(data.error||"No payment screenshot");
+    document.getElementById("payImg").src=data.payScreenshotURL;
+    document.getElementById("payUTR").innerHTML="UTR: <b style=\"color:var(--gold)\">"+esc(data.utr||p.UTR||"—")+"</b>";
+  }catch(e){
+    document.getElementById("payUTR").innerHTML='<span style="color:var(--red)">⚠ '+esc(e.message)+"</span>";
+  }
+}
+
+// SETUP
+function buildColorPicker(){
+  document.getElementById("colorPick").innerHTML=COLORS.map(function(c,i){
+    return '<div class="cdot'+(i===0?" sel":"")+'" style="background:'+c+'" onclick="pickColor(\''+c+'\',this)"></div>';
+  }).join("");
+}
+function isLight(hex){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return(r*299+g*587+b*114)/1000>128;}
+function pickColor(c,el){selColor=c;document.querySelectorAll(".cdot").forEach(function(d){d.classList.remove("sel");});el.classList.add("sel");var btn=document.getElementById("addTeamBtn");btn.style.background=c;btn.style.color=isLight(c)?"#000":"#fff";}
+async function loadPlayers(){
+  var btn=document.getElementById("loadBtn"),msg=document.getElementById("loadMsg");
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Loading...';
+  msg.style.display="block";msg.style.color="#60a5fa";msg.textContent="Fetching verified players...";
+  try{
+    var fetchedPlayers=await fetchAllPlayers();
+    var verified=fetchedPlayers.filter(function(p){return p.Status==="Verified";});
+    if(!verified.length)throw new Error("No verified players. Verify in Registrations first.");
+    allPlayers=fetchedPlayers;
+    var base=parseInt(document.getElementById("defBase").value)||3000;
+    var existing=auctPlayers.map(function(p){return p.id;});
+    verified.forEach(function(p){
+      if(!existing.includes(p.RegID)){
+        auctPlayers.push({id:p.RegID,name:p.Name||"Unknown",phone:p.Phone||"",
+          role:p.PlayerType||"Batsman",photo:p.PhotoURL||"",cricNum:p.CricHeroesNum||"",
+          availability:p.Availability||"",basePrice:base,status:"pending",soldTo:null,soldPrice:0});
+      }
+    });
+    msg.style.color="var(--green)";msg.textContent="✅ "+auctPlayers.length+" players loaded!";
+    renderPlayerSetup();renderStartHint();updateAll();
+  }catch(e){msg.style.color="var(--red)";msg.textContent=e.message;}
+  btn.disabled=false;btn.innerHTML="📥 Load";
+}
+function applyAllBase(){
+  var base=parseInt(document.getElementById("defBase").value)||3000;
+  auctPlayers=auctPlayers.map(function(p){return p.status==="pending"?Object.assign({},p,{basePrice:base}):p;});
+  renderPlayerSetup();
+}
+function setBase(id,val){auctPlayers=auctPlayers.map(function(p){return p.id===id?Object.assign({},p,{basePrice:parseInt(val)||3000}):p;});}
+function renderPlayerSetup(){
+  var el=document.getElementById("playerSetupList");if(!el)return;
+  if(!auctPlayers.length){el.innerHTML="";return;}
+  el.innerHTML=auctPlayers.filter(function(p){return p.status==="pending";}).map(function(p){
+    var hasPhoto=p.photo&&isPhotoURL(p.photo);
+    return '<div class="prow">'
+      +(hasPhoto
+        ?'<img loading="lazy" src="'+previewURL(p.photo)+'" style="width:34px;height:44px;border-radius:5px;object-fit:cover;border:2px solid var(--green);flex-shrink:0" onclick="openPhoto(\''+p.photo+'\',\''+escJs(p.name)+'\',false)"/>'
+        :'<div style="width:34px;height:44px;border-radius:5px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🧑</div>')
+      +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px;color:#f1f5f9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
+      +'<span class="rb '+rbc(p.role)+'" style="font-size:10px">'+esc(p.role)+'</span></div>'
+      +'<div style="display:flex;align-items:center;gap:4px"><span style="color:var(--gold);font-size:12px">₹</span>'
+      +'<input class="pinp" type="number" value="'+p.basePrice+'" onchange="setBase(\''+p.id+'\',this.value)"/></div>'
+      +'</div>';
+  }).join("");
+}
+function addTeam(){
+  var name=document.getElementById("tName").value.trim();if(!name)return;
+  var budget=parseInt(document.getElementById("tBudget").value)||100000;
+  teams.push({id:"t"+Date.now(),name:name,color:selColor,budget:budget,initialBudget:budget});
+  document.getElementById("tName").value="";
+  saveAuctionState();renderTeamSetup();renderStartHint();updateStats();updateBadges();
+  notify("🏆 Team '"+name+"' added!");
+}
+function removeTeam(id){teams=teams.filter(function(t){return t.id!==id;});saveAuctionState();renderTeamSetup();renderStartHint();updateStats();}
+function renderTeamSetup(){
+  var el=document.getElementById("teamSetupList");if(!el)return;
+  if(!teams.length){el.innerHTML='<div class="empty" style="padding:18px"><div style="font-size:30px">🏆</div><p>No teams yet</p></div>';return;}
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:7px">'+teams.map(function(t){
+    return '<div style="display:flex;align-items:center;gap:9px;background:#0d1220;border:1px solid '+t.color+'33;border-radius:8px;padding:9px 11px">'
+      +'<div style="width:11px;height:11px;border-radius:50%;background:'+t.color+';flex-shrink:0"></div>'
+      +'<div style="flex:1"><div style="font-weight:700;color:'+t.color+';font-size:14px">'+esc(t.name)+'</div>'
+      +'<div style="font-size:12px;color:var(--muted)">Budget: <b style="color:var(--gold)">'+fmt(t.initialBudget)+'</b></div></div>'
+      +'<button onclick="removeTeam(\''+t.id+'\')" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:15px">✕</button></div>';
+  }).join("")+'</div>';
+}
+function renderStartHint(){
+  var ok=teams.length>=2&&auctPlayers.length>0;
+  document.getElementById("startWrap").style.display=ok?"block":"none";
+  var h=[];
+  if(!auctPlayers.length)h.push("Load players first");
+  if(teams.length<2)h.push("Add at least 2 teams");
+  document.getElementById("startHint").textContent=h.join(" · ");
+}
+function exportTeams(){
+  if(!teams.length){notify("⚠ No teams");return;}
+  var data=JSON.stringify({teams:teams,auctState:auctPlayers.map(function(p){return {id:p.id,name:p.name,phone:p.phone,role:p.role,cricNum:p.cricNum,availability:p.availability||"",status:p.status,soldTo:p.soldTo,soldPrice:p.soldPrice,basePrice:p.basePrice,isFree:p.isFree||false};})});
+  var code=btoa(unescape(encodeURIComponent(data)));
+  navigator.clipboard.writeText(code).then(function(){notify("✅ Copied! Share with friend");}).catch(function(){prompt("Copy this code:",code);});
+}
+function importTeams(){
+  var code=prompt("Paste the teams code:");if(!code||!code.trim())return;
+  try{
+    var data=JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+    if(data.teams){teams=data.teams;if(data.auctState)mergeAuctState(data.auctState);saveAuctionState();updateAll();renderTeamSetup();renderStartHint();notify("✅ Teams imported!");}
+    else alert("Invalid code.");
+  }catch(e){alert("Invalid code format.");}
+}
+function resetFullAuction(){
+  if(!confirm("Reset ALL auction data? Teams and sold/unsold will be cleared.\nThis cannot be undone!"))return;
+  // Reset all player statuses
+  auctPlayers=auctPlayers.map(function(p){return Object.assign({},p,{status:"pending",soldTo:null,soldPrice:0});});
+  // Remove free-added players
+  auctPlayers=auctPlayers.filter(function(p){return !p.isFree;});
+  // Clear teams
+  teams=[];
+  // Clear localStorage immediately
+  try{
+    localStorage.removeItem("upl_teams");
+    localStorage.removeItem("upl_auctState");
+  }catch(e){}
+  // Save empty state to Google Sheet so sync doesn't restore old data
+  saveAuctionToSheet([],[]);
+  updateAll();renderTeamSetup();renderStartHint();
+  notify("✅ Auction reset! All data cleared from sheet too.");
+}
+
+// ROLE FILTER
+function setRole(r,btn){
+  roleFilter=r;
+  document.querySelectorAll(".rf-btn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");renderAuction();
+}
+
+// AUCTION
+function renderAuction(){
+  var sq=(document.getElementById("auctionSearch")?document.getElementById("auctionSearch").value||"":"").toLowerCase().trim();
+  function ms(p){if(!sq)return true;return [p.name,p.phone,p.cricNum,p.role].some(function(v){return v&&String(v).toLowerCase().includes(sq);});}
+  var pending=auctPlayers.filter(function(p){return p.status==="pending"&&(roleFilter==="All"||p.role===roleFilter)&&ms(p);});
+  var sold=auctPlayers.filter(function(p){return p.status==="sold"&&ms(p);});
+  var allPending=auctPlayers.filter(function(p){return p.status==="pending";});
+  var warnEl=document.getElementById("auctionWarn");
+  if(warnEl){
+    var vc=allPlayers.filter(function(p){return p.Status==="Verified";}).length;
+    if(vc===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">⚠ No verified players yet. Go to <b>Registrations</b> → click ✅ Verify.</div>';
+    else if(auctPlayers.length===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">'+vc+' verified players. Go to <b>⚙️ Setup</b> → click 📥 Load.</div>';
+    else if(teams.length===0)warnEl.innerHTML='<div style="background:#1a1000;border:1px solid var(--gold);border-radius:10px;padding:14px;margin-bottom:14px;font-size:13px;color:#f59e0b">⚠ No teams yet. Go to <b>⚙️ Setup</b> to add teams.</div>';
+    else warnEl.innerHTML="";
+  }
+  var pc=document.getElementById("pendCount");if(pc)pc.textContent=pending.length+(sq?" found":"")+"/"+allPending.length+" players";
+  var soldEl=document.getElementById("soldSection");
+  if(sold.length){
+    var sh='<div class="sec"><span>✅</span><span class="sec-t">Sold — '+sold.length+'</span><div class="sec-l"></div></div><div class="sold-grid">';
+    sold.forEach(function(p){
+      var team=teams.find(function(t){return t.id===p.soldTo;});
+      var hasPhoto=p.photo&&isPhotoURL(p.photo);
+      sh+='<div class="sold-card">'
+        +(hasPhoto?'<img loading="lazy" src="'+previewURL(p.photo)+'" style="width:30px;height:38px;border-radius:4px;object-fit:cover;cursor:pointer" onclick="openPhoto(\''+p.photo+'\',\''+escJs(p.name)+'\',false)"/>'
+          :'<div style="width:30px;height:38px;border-radius:4px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:13px">🧑</div>')
+        +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
+        +'<div style="font-size:11px"><span style="color:#34d399;font-weight:800">'+fmt(p.soldPrice)+'</span> → <span style="color:'+(team?team.color:"#94a3b8")+';font-weight:700">'+esc(team?team.name:"?")+'</span></div></div>'
+        +'<button onclick="resetAP(\''+p.id+'\')" style="background:none;border:1px solid #374151;color:#6b7280;border-radius:5px;padding:2px 6px;cursor:pointer;font-size:11px">↩</button></div>';
+    });
+    sh+='</div>';soldEl.innerHTML=sh;
+  }else{soldEl.innerHTML="";}
+  var pendEl=document.getElementById("pendingGrid");
+  if(!pending.length){pendEl.innerHTML='<div class="empty" style="grid-column:1/-1"><div style="font-size:36px">🎉</div><p>All auctioned!</p></div>';updateBadges();return;}
+  var ph="";
+  pending.forEach(function(p){
+    var hasPhoto=p.photo&&isPhotoURL(p.photo);
+    ph+='<div class="pcard">'
+      +'<div style="position:relative;width:90px;margin:0 auto">'
+      +(hasPhoto
+        ?'<img loading="lazy" class="pc-img" src="'+previewURL(p.photo)+'" onclick="openPhoto(\''+p.photo+'\',\''+escJs(p.name)+'\',false)" title="View photo"/>'
+        :'<div class="pc-ph">🧑</div>')
+      +'</div>'
+      +'<div style="font-weight:800;font-size:14px;color:#f8fafc;text-align:center;margin-top:4px">'+esc(p.name)+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);text-align:center">'+esc(p.cricNum)+'</div>'
+      +'<div style="text-align:center;margin-top:5px"><span class="rb '+rbc(p.role)+'" style="font-size:12px">'+esc(p.role)+'</span></div>'
+      +(p.availability?'<div style="text-align:center;margin-top:4px;font-size:11px;color:#60a5fa;font-weight:700">📅 '+esc(p.availability)+'</div>':"")
+      +'<div style="font-size:12px;color:var(--muted);text-align:center;margin-top:5px">Base: <span style="color:var(--gold);font-weight:800">'+fmt(p.basePrice)+'</span></div>'
+      +'<button class="btn btn-b" onclick="openBid(\''+p.id+'\')" style="width:100%;margin-top:9px;padding:7px;font-size:13px">🔨 Bid</button></div>';
+  });
+  pendEl.innerHTML=ph;updateBadges();
+}
+
+// BID
+function openBid(id){
+  bidPlayer=auctPlayers.find(function(p){return p.id===id;});if(!bidPlayer)return;
+  document.getElementById("bidName").textContent=bidPlayer.name;
+  document.getElementById("bidCricNum").textContent=bidPlayer.cricNum||"";
+  document.getElementById("bidRole").innerHTML='<span class="rb '+rbc(bidPlayer.role)+'" style="font-size:16px;padding:4px 14px">'+esc(bidPlayer.role)+'</span>';
+  document.getElementById("bidBase").textContent=fmt(bidPlayer.basePrice);
+  document.getElementById("bidInp").value=bidPlayer.basePrice;
+  document.getElementById("bidWarn").style.display="none";
+  var availEl=document.getElementById("bidAvail");
+  if(availEl){if(bidPlayer.availability){availEl.style.display="block";availEl.querySelector("span").textContent="📅 "+bidPlayer.availability;}else availEl.style.display="none";}
+  var phoneEl=document.getElementById("bidPhone");if(phoneEl)phoneEl.textContent=bidPlayer.phone?"📱 "+bidPlayer.phone:"";
+  var pw=document.getElementById("bidPhotoWrap");
+  if(pw){
+    if(bidPlayer.photo&&isPhotoURL(bidPlayer.photo))
+      pw.innerHTML='<img loading="lazy" src="'+previewURL(bidPlayer.photo)+'" style="width:120px;height:150px;border-radius:10px;object-fit:cover;border:3px solid #22c55e;cursor:pointer" onclick="openPhoto(\''+bidPlayer.photo+'\',\''+escJs(bidPlayer.name)+'\',false)" title="View full photo"/>';
+    else
+      pw.innerHTML='<div style="width:120px;height:150px;border-radius:10px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:48px;border:3px dashed #2d4a52">🧑</div>';
+  }
+  showBidActions();
+  document.getElementById("bidModal").classList.add("open");
+}
+function checkBid(){document.getElementById("bidWarn").style.display=bidPlayer&&parseInt(document.getElementById("bidInp").value)<bidPlayer.basePrice?"block":"none";}
+function showBidActions(){document.getElementById("bidActions").style.display="block";document.getElementById("teamPickWrap").style.display="none";}
+function handleSold(){
+  document.getElementById("bidActions").style.display="none";document.getElementById("teamPickWrap").style.display="block";
+  var price=parseInt(document.getElementById("bidInp").value)||bidPlayer.basePrice;
+  document.getElementById("teamPickLabel").innerHTML="Select team for <b style=\"color:#f8fafc\">"+esc(bidPlayer.name)+"</b> at <b style=\"color:#34d399\">"+fmt(price)+"</b>:";
+  var g="";
+  teams.forEach(function(t){
+    var can=t.budget>=price;
+    g+='<button class="tpb" onclick="'+(can?"assignTeam('"+t.id+"')":"")+'" style="border-color:'+(can?t.color+"66":"#374151")+';background:'+(can?t.color+"18":"#111827")+';color:'+(can?t.color:"#374151")+';cursor:'+(can?"pointer":"not-allowed")+'">'
+      +'<div>'+esc(t.name)+'</div><div style="font-size:11px;opacity:.8">'+(can?"💰 "+fmt(t.budget):"❌ Low budget")+'</div></button>';
+  });
+  document.getElementById("teamPickGrid").innerHTML=g;
+}
+function handleUnsold(){
+  var pName=bidPlayer.name;
+  auctPlayers=auctPlayers.map(function(p){return p.id===bidPlayer.id?Object.assign({},p,{status:"unsold"}):p;});
+  closeM("bidModal");bidPlayer=null;saveAuctionState();updateAll();renderAuction();
+  showUnsoldStamp(pName);
+}
+function assignTeam(teamId){
+  var price=parseInt(document.getElementById("bidInp").value)||bidPlayer.basePrice;
+  var pName=bidPlayer.name,pRole=bidPlayer.role;
+  auctPlayers=auctPlayers.map(function(p){return p.id===bidPlayer.id?Object.assign({},p,{status:"sold",soldTo:teamId,soldPrice:price}):p;});
+  teams=teams.map(function(t){return t.id===teamId?Object.assign({},t,{budget:t.budget-price}):t;});
+  var team=teams.find(function(t){return t.id===teamId;});
+  closeM("bidModal");bidPlayer=null;saveAuctionState();updateAll();renderAuction();renderTeams();
+  showSoldCelebration(pName,pRole,price,team.name,team.color);
+}
+function resetAP(id){
+  var p=auctPlayers.find(function(x){return x.id===id;});if(!p)return;
+  if(p.status==="sold")teams=teams.map(function(t){return t.id===p.soldTo?Object.assign({},t,{budget:t.budget+p.soldPrice}):t;});
+  auctPlayers=auctPlayers.map(function(x){return x.id===id?Object.assign({},x,{status:"pending",soldTo:null,soldPrice:0}):x;});
+  saveAuctionState();updateAll();renderAuction();renderTeams();renderUnsold();
+}
+
+// TEAMS
+function renderTeams(){
+  var el=document.getElementById("teamsGrid");
+  if(!teams.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><div style="font-size:36px">🏆</div><p>No teams. Add in Setup.</p></div>';return;}
+  var sq=(document.getElementById("teamSearch")?document.getElementById("teamSearch").value||"":"").toLowerCase().trim();
+  function matchT(p){if(!sq)return true;return [p.name,p.phone,p.cricNum,p.role].some(function(v){return v&&String(v).toLowerCase().includes(sq);});}
+  el.innerHTML="";
+  teams.forEach(function(t){
+    var allTP=auctPlayers.filter(function(p){return p.soldTo===t.id;});
+    var tp=allTP.filter(function(p){return matchT(p);});
+    var pct=Math.max(0,(t.budget/t.initialBudget)*100);
+    var spent=t.initialBudget-t.budget;
+    var totalCount=allTP.length;
+    var countColor=totalCount<16?"var(--red)":totalCount<=18?"var(--green)":"var(--gold)";
+    var countLabel=totalCount<16?"Need "+(16-totalCount)+" more":totalCount<=18?"Good!":"Full";
+    var div=document.createElement("div");
+    div.className="tcard";div.style.border="1px solid "+t.color+"33";
+    var rows="";
+    if(!tp.length){rows='<div style="color:#374151;text-align:center;padding:14px;font-size:13px">'+(sq?"No match":"No players yet")+'</div>';}
+    else{
+      tp.forEach(function(p){
+        var isFree=!!p.isFree;
+        var hasPhoto=p.photo&&isPhotoURL(p.photo);
+        rows+='<div style="display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--border)">'
+          +(hasPhoto?'<img loading="lazy" src="'+previewURL(p.photo)+'" style="width:28px;height:36px;border-radius:4px;object-fit:cover;flex-shrink:0;cursor:pointer" onclick="openPhoto(\''+p.photo+'\',\''+escJs(p.name)+'\',false)" title="View photo"/>'
+            :'<div style="width:28px;height:36px;border-radius:4px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">🧑</div>')
+          +'<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
+          +'<span class="rb '+rbc(p.role)+'" style="font-size:10px">'+esc(p.role)+'</span>'+(isFree?' <span style="font-size:10px;background:#1e2a4a;color:#60a5fa;padding:1px 6px;border-radius:8px">FREE</span>':"")
+          +'</div>'
+          +'<div style="font-weight:800;color:'+(isFree?"#60a5fa":"#34d399")+';font-size:13px;white-space:nowrap">'+(isFree?"FREE":fmt(p.soldPrice))+'</div>'
+          +'<button data-pid="'+p.id+'" class="reset-tp-btn" style="background:none;border:1px solid #374151;color:#6b7280;border-radius:4px;padding:2px 5px;cursor:pointer;font-size:10px;flex-shrink:0">↩</button></div>';
+      });
+    }
+    var maxAfford=Math.floor(t.budget/3000);
+    var slotsLeft=Math.max(0,18-totalCount);
+    var canBuy=Math.min(maxAfford,slotsLeft);
+    var slotsHtml=slotsLeft===0?'<div style="font-size:11px;color:var(--green);font-weight:700;margin-top:2px">✅ Squad full</div>'
+      :'<div style="font-size:11px;color:#60a5fa;font-weight:700;margin-top:2px">Can buy '+canBuy+' more @ ₹3000 (slots: '+slotsLeft+')</div>';
+    div.innerHTML='<div class="tcard-head" style="background:'+t.color+'18;border-bottom:2px solid '+t.color+'55">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'
+        +'<div><div style="font-weight:800;font-size:15px;color:'+t.color+'">'+esc(t.name)+'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;margin-top:4px"><span style="font-size:13px;color:'+countColor+';font-weight:800">'+totalCount+' players</span>'
+        +'<span style="font-size:10px;padding:1px 7px;border-radius:10px;background:'+countColor+'22;color:'+countColor+';font-weight:700">'+countLabel+'</span></div>'
+        +'<div style="font-size:11px;color:var(--muted);margin-top:2px">Min 16 · Max 18</div></div>'
+        +'<div style="text-align:right;flex-shrink:0">'
+          +'<div style="font-size:10px;color:var(--muted);letter-spacing:1px">REMAINING</div>'
+          +'<div style="font-weight:800;font-size:18px;color:'+(t.budget<5000?"var(--red)":t.budget<t.initialBudget*.2?"var(--gold)":"var(--green)")+'">'+fmt(t.budget)+'</div>'
+          +'<div style="font-size:11px;color:var(--muted)">Spent: '+fmt(spent)+'</div>'
+          +slotsHtml
+        +'</div>'
+      +'</div>'
+      +'<div class="bbar" style="margin-top:8px"><div class="bfill" style="width:'+pct+'%;background:'+t.color+'"></div></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:7px;padding:9px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap">'
+      +'<button class="ab aPh free-add-btn" data-tid="'+t.id+'" style="padding:5px 12px;font-size:12px">+ Add Player</button>'
+      +'<button class="ab aVw dl-team-btn" data-tid="'+t.id+'" style="padding:5px 12px;font-size:12px">📥 Download</button>'
+    +'</div>'
+    +'<div class="tcard-body">'+rows+'</div>';
+    el.appendChild(div);
+  });
+  el.querySelectorAll(".free-add-btn").forEach(function(btn){btn.addEventListener("click",function(){openFreeAdd(this.getAttribute("data-tid"));});});
+  el.querySelectorAll(".dl-team-btn").forEach(function(btn){btn.addEventListener("click",function(){downloadTeamExcel(this.getAttribute("data-tid"));});});
+  el.querySelectorAll(".reset-tp-btn").forEach(function(btn){btn.addEventListener("click",function(){resetAP(this.getAttribute("data-pid"));});});
+}
+
+// UNSOLD
+function renderUnsold(){
+  var sq=(document.getElementById("unsoldSearch")?document.getElementById("unsoldSearch").value||"":"").toLowerCase().trim();
+  function matchU(p){if(!sq)return true;return [p.name,p.phone,p.cricNum,p.role].some(function(v){return v&&String(v).toLowerCase().includes(sq);});}
+  var unsold=auctPlayers.filter(function(p){return p.status==="unsold"&&matchU(p);});
+  var el=document.getElementById("unsoldGrid");
+  if(!unsold.length){el.innerHTML='<div class="empty" style="grid-column:1/-1"><div style="font-size:36px">'+(sq?"🔍":"🏏")+'</div><p>'+(sq?"No match":"No unsold players")+'</p></div>';return;}
+  el.innerHTML=unsold.map(function(p){
+    var hasPhoto=p.photo&&isPhotoURL(p.photo);
+    return '<div class="ucard">'
+      +'<div style="display:flex;align-items:center;gap:9px;margin-bottom:9px">'
+      +(hasPhoto?'<img loading="lazy" src="'+previewURL(p.photo)+'" style="width:42px;height:54px;border-radius:6px;object-fit:cover;border:2px solid #7f1d1d;flex-shrink:0;cursor:pointer" onclick="openPhoto(\''+p.photo+'\',\''+escJs(p.name)+'\',false)"/>'
+        :'<div style="width:42px;height:54px;border-radius:6px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">🧑</div>')
+      +'<div style="flex:1;min-width:0"><div style="font-weight:700;color:#e2e8f0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div>'
+      +'<span class="rb '+rbc(p.role)+'">'+esc(p.role)+'</span>'
+      +(p.phone?'<div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(p.phone)+'</div>':"")
+      +'<div style="font-size:12px;color:var(--muted);margin-top:2px">Base: '+fmt(p.basePrice)+'</div></div>'
+      +'<span style="background:#7f1d1d;color:#fca5a5;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;flex-shrink:0">UNSOLD</span></div>'
+      +'<button onclick="resetAP(\''+p.id+'\')" style="width:100%;padding:7px;background:#1e2a4a;border:1px solid #2d3f6e;color:#94a3b8;border-radius:7px;cursor:pointer;font-size:12px;font-weight:700">🔄 Re-enter Auction</button>'
+    +'</div>';
+  }).join("");
+}
+
+// FREE ADD
+function openFreeAdd(teamId){
+  var t=teams.find(function(x){return x.id===teamId;});
+  document.getElementById("freeAddTeamId").value=teamId;
+  document.getElementById("freeAddTitle").textContent="Add Player → "+(t?t.name:"Team");
+  document.getElementById("freeSearch").value="";
+  document.getElementById("freeAmount").value="0";
+  document.getElementById("freeComment").value="";
+  document.getElementById("freeSelectedPlayerId").value="";
+  freeSelectedPlayer=null;
+  document.getElementById("freeSelectedPreview").style.display="none";
+  renderFreeList();
+  document.getElementById("freeAddModal").classList.add("open");
+}
+function renderFreeList(){
+  var sq=(document.getElementById("freeSearch").value||"").toLowerCase().trim();
+  var available=allPlayers.filter(function(p){
+    if(p.Status!=="Verified")return false;
+    var ap=auctPlayers.find(function(a){return a.id===p.RegID;});
+    if(ap&&ap.status==="sold")return false;
+    if(!sq)return true;
+    return [p.Name,p.Phone,p.CricHeroesNum,p.PlayerType].some(function(v){return v&&String(v).toLowerCase().includes(sq);});
+  });
+  var el=document.getElementById("freePlayerList");
+  if(!available.length){el.innerHTML='<div style="padding:18px;text-align:center;color:var(--muted);font-size:13px">'+(sq?"No players match":"All sold or none found")+'</div>';return;}
+  el.innerHTML="";
+  available.forEach(function(p){
+    var ap=auctPlayers.find(function(a){return a.id===p.RegID;});
+    var isUnsold=ap&&ap.status==="unsold";
+    var isSel=freeSelectedPlayer&&freeSelectedPlayer.RegID===p.RegID;
+    var hasPhoto=p.PhotoURL&&isPhotoURL(p.PhotoURL);
+    var row=document.createElement("div");
+    row.style.cssText="display:flex;align-items:center;gap:9px;padding:9px 11px;cursor:pointer;border-bottom:1px solid var(--border);background:"+(isSel?"#052e16":"transparent");
+    row.innerHTML=(hasPhoto?'<img loading="lazy" src="'+previewURL(p.PhotoURL)+'" style="width:34px;height:44px;border-radius:5px;object-fit:cover;border:2px solid '+(isSel?"#22c55e":"#1a2535")+';flex-shrink:0"/>'
+      :'<div style="width:34px;height:44px;border-radius:5px;background:#1a2535;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">🧑</div>')
+      +'<div style="flex:1;min-width:0"><div style="font-weight:700;font-size:13px;color:#f1f5f9;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.Name||"—")+'</div>'
+      +'<span class="rb '+rbc(p.PlayerType)+'" style="font-size:10px">'+esc(p.PlayerType||"—")+'</span>'
+      +(isUnsold?' <span style="font-size:10px;background:#7f1d1d;color:#fca5a5;padding:1px 6px;border-radius:8px">Unsold</span>':"")
+      +'</div>'+(isSel?'<span style="color:#22c55e;font-size:16px;flex-shrink:0">✓</span>':"");
+    row.addEventListener("click",function(){selectFreePlayer(p.RegID);});
+    el.appendChild(row);
+  });
+}
+function selectFreePlayer(regId){
+  var p=allPlayers.find(function(x){return x.RegID===regId;});if(!p)return;
+  freeSelectedPlayer=p;
+  document.getElementById("freeSelectedPlayerId").value=regId;
+  var prev=document.getElementById("freeSelectedPreview");prev.style.display="flex";
+  document.getElementById("freeSelName").textContent=p.Name||"—";
+  document.getElementById("freeSelRole").innerHTML='<span class="rb '+rbc(p.PlayerType)+'" style="font-size:11px">'+esc(p.PlayerType||"—")+'</span>';
+  var photoEl=document.getElementById("freeSelPhoto");
+  if(p.PhotoURL&&isPhotoURL(p.PhotoURL))photoEl.innerHTML='<img loading="lazy" src="'+previewURL(p.PhotoURL)+'" style="width:36px;height:46px;border-radius:5px;object-fit:cover"/>';
+  else photoEl.textContent="🧑";
+  renderFreeList();
+}
+function clearFreeSelection(){freeSelectedPlayer=null;document.getElementById("freeSelectedPlayerId").value="";document.getElementById("freeSelectedPreview").style.display="none";renderFreeList();}
+function confirmFreeAdd(){
+  var selId=document.getElementById("freeSelectedPlayerId").value;
+  if(!selId){notify("⚠ Select a player");return;}
+  var teamId=document.getElementById("freeAddTeamId").value;
+  var amount=parseInt(document.getElementById("freeAmount").value)||0;
+  var comment=document.getElementById("freeComment").value.trim();
+  var p=allPlayers.find(function(x){return x.RegID===selId;});if(!p){notify("⚠ Player not found");return;}
+  var existing=auctPlayers.find(function(a){return a.id===selId;});
+  if(existing){
+    auctPlayers=auctPlayers.map(function(a){return a.id!==selId?a:Object.assign({},a,{status:"sold",soldTo:teamId,soldPrice:amount,isFree:true,comment:comment});});
+  }else{
+    auctPlayers.push({id:selId,name:p.Name||"Unknown",phone:p.Phone||"",role:p.PlayerType||"Batsman",
+      photo:p.PhotoURL||"",cricNum:p.CricHeroesNum||"",basePrice:amount,
+      status:"sold",soldTo:teamId,soldPrice:amount,isFree:true,comment:comment,availability:p.Availability||""});
+  }
+  if(amount>0)teams=teams.map(function(t){return t.id===teamId?Object.assign({},t,{budget:t.budget-amount}):t;});
+  closeM("freeAddModal");saveAuctionState();updateAll();renderTeams();
+  notify("✅ "+escJs(p.Name)+" added"+(amount>0?" @ "+fmt(amount):""));
+}
+
+// DOWNLOAD
+function downloadCSV(){
+  var h=["RegID","Name","CricHeroesNum","Phone","AltPhone","PlayerType","Address","UTR","Status","Timestamp"];
+  var rows=allPlayers.map(function(p){return h.map(function(k){return '"'+csvSafe(p[k]).replace(/"/g,'""')+'"';}).join(",");});
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([h.join(",")+"\n"+rows.join("\n")],{type:"text/csv"}));a.download="cricket_registrations.csv";a.click();
+}
+function downloadTeamExcel(teamId){
+  var t=teams.find(function(x){return x.id===teamId;});if(!t)return;
+  var tp=auctPlayers.filter(function(p){return p.soldTo===teamId;});
+  var spent=t.initialBudget-t.budget;
+  var rows=[["Tournament dashboard - "+t.name],[],["Team","Budget","Spent","Remaining","Players"],[t.name,t.initialBudget,spent,t.budget,tp.length],[],["#","Name","CH#","Phone","Role","Price","Type"]];
+  tp.forEach(function(p,i){rows.push([i+1,p.name,p.cricNum||"",p.phone||"",p.role,p.isFree?"FREE":p.soldPrice,p.isFree?"Free":"Auction"]);});
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+csvSafe(c).replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="Tournament_"+t.name.replace(/\s+/g,"_")+".csv";a.click();
+  notify("📥 Downloaded "+t.name);
+}
+function downloadAllTeams(){
+  var rows=[["Tournament dashboard - All Teams"]];
+  teams.forEach(function(t){
+    var tp=auctPlayers.filter(function(p){return p.soldTo===t.id;});
+    var spent=t.initialBudget-t.budget;
+    rows.push([]);rows.push(["TEAM: "+t.name]);rows.push(["Budget",t.initialBudget,"Spent",spent,"Remaining",t.budget,"Players",tp.length]);
+    rows.push(["#","Name","CH#","Phone","Role","Price","Type"]);
+    tp.forEach(function(p,i){rows.push([i+1,p.name,p.cricNum||"",p.phone||"",p.role,p.isFree?"FREE":p.soldPrice,p.isFree?"Free":"Auction"]);});
+  });
+  var csv=rows.map(function(r){return r.map(function(c){return '"'+csvSafe(c).replace(/"/g,'""')+'"';}).join(",");}).join("\n");
+  var a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8"}));a.download="Tournament_All_Teams.csv";a.click();
+  notify("📥 All teams downloaded!");
+}
+
+// CELEBRATION
+var confColors=["#22c55e","#f59e0b","#3b82f6","#a78bfa","#f472b6","#34d399","#fbbf24","#fff","#60a5fa"];
+function showSoldCelebration(playerName,role,price,teamName,teamColor){
+  var el=document.getElementById("soldCelebration"),card=document.getElementById("soldCard");if(!el||!card)return;
+  document.getElementById("soldPlayerName").textContent=playerName;
+  document.getElementById("soldPlayerRole").innerHTML='<span class="rb '+rbc(role)+'" style="font-size:14px">'+esc(role)+'</span>';
+  document.getElementById("soldPriceEl").textContent=fmt(price);
+  document.getElementById("soldTeamEl").innerHTML='<span style="color:'+teamColor+';font-weight:800">→ '+esc(teamName)+'</span>';
+  card.style.transition="none";card.style.transform="translate(-50%,-50%) scale(0)";
+  el.style.display="block";
+  setTimeout(function(){card.style.transition="transform .45s cubic-bezier(.34,1.56,.64,1)";card.style.transform="translate(-50%,-50%) scale(1)";},50);
+  launchConfetti();
+  if(confettiTimer)clearTimeout(confettiTimer);
+  confettiTimer=setTimeout(function(){hideSoldCelebration();},7000);
+}
+function hideSoldCelebration(){
+  var card=document.getElementById("soldCard");if(card)card.style.transform="translate(-50%,-50%) scale(0)";
+  stopConfetti();
+  setTimeout(function(){var el=document.getElementById("soldCelebration");if(el)el.style.display="none";},450);
+}
+function launchConfetti(){
+  var canvas=document.getElementById("confettiCanvas");if(!canvas)return;
+  canvas.width=window.innerWidth;canvas.height=window.innerHeight;
+  var ctx=canvas.getContext("2d"),pieces=[];
+  for(var i=0;i<160;i++){pieces.push({x:Math.random()*canvas.width,y:-20-Math.random()*300,w:7+Math.random()*9,h:3+Math.random()*5,color:confColors[Math.floor(Math.random()*confColors.length)],speed:2.5+Math.random()*5,angle:Math.random()*360,spin:-4+Math.random()*8,wave:1+Math.random()*4,waveSpd:0.04+Math.random()*0.06,waveOff:Math.random()*6.28});}
+  var frame=0;
+  if(confettiInterval)clearInterval(confettiInterval);
+  confettiInterval=setInterval(function(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);frame++;
+    pieces.forEach(function(p){p.y+=p.speed;p.angle+=p.spin;p.x+=Math.sin(p.waveOff+frame*p.waveSpd)*p.wave;if(p.y>canvas.height+20){p.y=-20;p.x=Math.random()*canvas.width;}ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle*Math.PI/180);ctx.fillStyle=p.color;ctx.globalAlpha=0.88;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();});
+  },16);
+}
+function stopConfetti(){if(confettiInterval){clearInterval(confettiInterval);confettiInterval=null;}var canvas=document.getElementById("confettiCanvas");if(canvas)canvas.getContext("2d").clearRect(0,0,canvas.width,canvas.height);}
+function showUnsoldStamp(playerName){
+  var el=document.getElementById("unsoldStamp"),stamp=document.getElementById("stampEl");if(!el||!stamp)return;
+  document.getElementById("unsoldPlayerName").textContent=playerName;
+  stamp.style.transition="none";stamp.style.transform="translate(-50%,-50%) scale(3) rotate(-15deg)";stamp.style.opacity="0";
+  el.style.display="block";
+  setTimeout(function(){stamp.style.transition="all .4s cubic-bezier(.34,1.56,.64,1)";stamp.style.transform="translate(-50%,-50%) scale(1) rotate(-12deg)";stamp.style.opacity="1";},50);
+  if(unsoldTimer)clearTimeout(unsoldTimer);
+  unsoldTimer=setTimeout(function(){stamp.style.transition="all .3s ease";stamp.style.opacity="0";stamp.style.transform="translate(-50%,-50%) scale(0.8) rotate(-12deg)";setTimeout(function(){el.style.display="none";},350);},4000);
+}
+document.addEventListener("click",function(e){
+  var sc=document.getElementById("soldCelebration"),us=document.getElementById("unsoldStamp");
+  if(sc&&sc.style.display!=="none"&&e.target===sc)hideSoldCelebration();
+  if(us&&us.style.display!=="none"&&e.target===us){us.style.display="none";if(unsoldTimer){clearTimeout(unsoldTimer);unsoldTimer=null;}}
+},{passive:true});
+
+</script>
+<script src="auction-runtime.js"></script></body>
+</html>
