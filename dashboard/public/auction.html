@@ -766,7 +766,7 @@ function renderTable(){
             +'<div style="font-size:9px;color:var(--red);margin-top:2px">No photo</div></div>')
       +'</td>'
       +'<td><div style="font-weight:700;color:#f1f5f9">'+esc(p.Name||"—")+'</div><div style="font-size:11px;color:var(--muted)">'+esc(p.RegID||"")+'</div></td>'
-      +'<td style="font-weight:700;color:var(--gold)">'+esc(p.CricHeroesNum||"—")+'</td>'
+      +'<td style="font-weight:700;color:var(--gold)">'+cricHeroesMarkup(p.RegID)+'</td>'
       +'<td><div>'+esc(p.Phone||"—")+'</div>'+(p.AltPhone?'<div style="font-size:11px;color:var(--muted)">'+esc(p.AltPhone)+'</div>':"")+'</td>'
       +'<td><span class="rb '+rbc(p.PlayerType)+'">'+esc(p.PlayerType||"—")+'</span></td>'
       +'<td style="font-family:monospace;font-size:12px;color:var(--gold)">'+esc(p.UTR||"—")+'</td>'
@@ -1042,7 +1042,7 @@ function renderAuction(){
         :'<div class="pc-ph">🧑</div>')
       +'</div>'
       +'<div style="font-weight:800;font-size:14px;color:#f8fafc;text-align:center;margin-top:4px">'+esc(p.name)+'</div>'
-      +'<div style="font-size:11px;color:var(--muted);text-align:center">'+esc(p.cricNum)+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);text-align:center">'+cricHeroesMarkup(p.id)+'</div>'
       +'<div style="text-align:center;margin-top:5px"><span class="rb '+rbc(p.role)+'" style="font-size:12px">'+esc(p.role)+'</span></div>'
       +(p.availability?'<div style="text-align:center;margin-top:4px;font-size:11px;color:#60a5fa;font-weight:700">📅 '+esc(p.availability)+'</div>':"")
       +'<div style="font-size:12px;color:var(--muted);text-align:center;margin-top:5px">Base: <span style="color:var(--gold);font-weight:800">'+fmt(p.basePrice)+'</span></div>'

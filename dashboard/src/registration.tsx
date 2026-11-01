@@ -207,11 +207,19 @@ export default function Registration({ id }: { id: string }) {
                     autoComplete="name"
                   />
                   <Field
-                    label="Cric Heroes number *"
+                    label="CricHeroes registered number *"
                     name="cricHeroesNum"
                     required
                     maxLength={80}
                   />
+                  <Field
+                    label="CricHeroes profile link"
+                    name="cricHeroesProfileURL"
+                    type="url"
+                    maxLength={500}
+                    placeholder="https://cricheroes.com/player-profile/…"
+                  />
+                  <p className="field-hint">In CricHeroes, open your profile → Share → Copy link. Team owners can use it to view your statistics during the auction. Your registered number alone cannot open your profile.</p>
                   <Field
                     label="Phone number *"
                     name="phone"

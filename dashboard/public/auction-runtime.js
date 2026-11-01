@@ -58,3 +58,34 @@ function restoreSnapshot(){try{var d=JSON.parse(sessionStorage.getItem('boundary
 var originalOpenPhoto=openPhoto;
 openPhoto=function(src,name,valid){var p=allPlayers.find(function(p){return p.PhotoURL===src||p.PhotoThumbURL===src});return originalOpenPhoto(p?p.PhotoURL:src,name,valid)};
 function previewURL(src){var p=allPlayers.find(function(p){return p.PhotoURL===src});return p&&p.PhotoThumbURL?p.PhotoThumbURL:src;}
+
+// CricHeroes profiles open on CricHeroes, using that browser's own login session.
+function cricHeroesURL(value){
+ try{var u=new URL(String(value||'').trim()),m=/^\/player-profile\/([1-9][0-9]*)\/([a-zA-Z0-9_-]+)(?:\/stats)?\/?$/.exec(u.pathname);
+ if(u.protocol!=='https:'||!['cricheroes.com','www.cricheroes.com','cricheroes.in','www.cricheroes.in'].includes(u.hostname)||u.port||u.username||u.password||!m)return '';
+ return 'https://cricheroes.com/player-profile/'+m[1]+'/'+m[2]+'/stats';
+ }catch(_){return ''}
+}
+function cricHeroesMarkup(id){
+ var p=allPlayers.find(function(p){return p.RegID===id});if(!p)return '';
+ var url=cricHeroesURL(p.CricHeroesProfileURL)||cricHeroesURL(p.CricHeroesNum);
+ return '<div class="ch-profile"><span>'+esc(p.CricHeroesNum||'')+'</span>'
+ +(url?'<a class="ch-stats" href="'+url+'" target="_blank" rel="noopener noreferrer" aria-label="View CricHeroes stats for '+esc(p.Name)+'">View CricHeroes stats ↗</a>':'<small>Profile link needed to view stats</small>')
+ +(!currentTournament?.settings.archived?'<button type="button" class="ch-edit" onclick="event.stopPropagation();editCricHeroes(\''+escJs(id)+'\')">'+(url?'Edit profile link':'Add profile link')+'</button>':'')+'</div>';
+}
+function cricHeroesPanel(id){return cricHeroesMarkup(id)+'<p class="ch-help">Opens CricHeroes in a new tab. Use your own CricHeroes login; some insights require Pro. Your auction stays open.</p>'}
+async function editCricHeroes(id){
+ var p=allPlayers.find(function(p){return p.RegID===id});if(!p||mutationPending||fetchPending)return;
+ var value=prompt('CricHeroes profile for '+p.Name+'\nOpen their CricHeroes profile → Share → Copy link.\nA registered mobile number is not a profile ID. Leave empty to remove the link.',p.CricHeroesProfileURL||cricHeroesURL(p.CricHeroesNum)||'');
+ if(value===null)return;var url=cricHeroesURL(value);
+ if(value.trim()&&!url){notify('Paste a full https://cricheroes.com/player-profile/… link.');return}
+ mutationPending=true;document.getElementById('saveBlocker').hidden=false;indicate('Saving profile…');
+ try{await call(apiRoot+'/cricheroes',{regId:id,profileURL:url});await snapshot();
+ if(document.getElementById('detailModal').classList.contains('open'))viewPlayer(id);
+ var panel=document.getElementById('bidCricHeroes');if(panel&&bidPlayer?.id===id)panel.innerHTML=cricHeroesPanel(id);
+ }catch(e){failure(e)}finally{mutationPending=false;document.getElementById('saveBlocker').hidden=true}
+}
+var originalViewPlayer=viewPlayer;
+viewPlayer=function(id){originalViewPlayer(id);if(!allPlayers.some(function(p){return p.RegID===id}))return;var panel=document.createElement('section');panel.className='ch-detail';panel.innerHTML=cricHeroesPanel(id);document.getElementById('dmBody').prepend(panel)};
+var originalOpenBid=openBid;
+openBid=function(id){originalOpenBid(id);if(!bidPlayer)return;var panel=document.getElementById('bidCricHeroes');if(!panel){panel=document.createElement('section');panel.id='bidCricHeroes';document.getElementById('bidCricNum').after(panel)}document.getElementById('bidCricNum').hidden=true;panel.innerHTML=cricHeroesPanel(id)};

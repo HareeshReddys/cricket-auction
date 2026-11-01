@@ -436,3 +436,28 @@ test("database images span chunks without altering bytes and delete completely",
   assert.equal(await storage.get("large"), null);
   assert.equal(sqlite.prepare("SELECT COUNT(*) AS n FROM asset_chunks").get().n, 0);
 });
+
+test("CricHeroes links are validated, saved on registration, and editable only within the owner's tournament", async () => {
+  const { call, admin } = await fixture(true);
+  const t = await call('/tournaments', {name:'Profile test',settings}, admin.token, 'POST', 201);
+  const root='/tournaments/'+t.id;
+  const profile='https://cricheroes.com/player-profile/9558182/cricheroes-user/stats';
+  const body={...registration,photoURL:'data:image/png;base64,'+Buffer.from(image).toString('base64'),cricHeroesProfileURL:profile};
+  await call(root+'/register',{...body,cricHeroesProfileURL:'https://cricheroes.com.evil.test/player-profile/1/test'},null,'POST',400);
+  const p=await call(root+'/register',body,null,'POST',201);
+  let snap=await call(root+'/snapshot',null,admin.token);
+  assert.equal(snap.players[0].CricHeroesProfileURL,profile);
+  await call(root+'/cricheroes',{regId:p.regId,profileURL:profile},null,'POST',401);
+  const other=await call('/tournaments',{name:'Other owner',settings},admin.token,'POST',201);
+  const invite=await call('/tournaments/'+other.id+'/invites',{email:'scoped@example.test'},admin.token);
+  const owner=await call('/auth/accept-invite',{email:'scoped@example.test',password:'owner-password-test-123',token:invite.token});
+  await call(root+'/cricheroes',{regId:p.regId,profileURL:profile},owner.token,'POST',403);
+  await call(root+'/cricheroes',{regId:p.regId,profileURL:'javascript:alert(1)'},admin.token,'POST',400);
+  await call(root+'/cricheroes',{regId:p.regId,profileURL:'https://www.cricheroes.com/player-profile/12345/another-player?source=share'},admin.token);
+  const updated=await call(root+'/snapshot',null,admin.token);
+  assert.equal(updated.players[0].CricHeroesProfileURL,'https://cricheroes.com/player-profile/12345/another-player/stats');
+  assert.ok(updated.tournament.version>snap.tournament.version);
+  await call(root+'/cricheroes',{regId:p.regId,profileURL:''},admin.token);
+  snap=await call(root+'/snapshot',null,admin.token);
+  assert.equal(snap.players[0].CricHeroesProfileURL,'');
+});

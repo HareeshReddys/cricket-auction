@@ -1664,3 +1664,5 @@ footer span {
   font-size: 10px;
   cursor: pointer;
 }
+
+.field-hint{font-size:12px;line-height:1.5;color:var(--muted);grid-column:1/-1;margin:0 0 8px}
