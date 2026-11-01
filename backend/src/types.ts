@@ -1,7 +1,7 @@
 export type User = { id: string; email: string; role: "admin" | "organizer" };
 export interface Env {
   DB: D1Database;
-  BUCKET: R2Bucket;
+  BUCKET?: R2Bucket;
   FRONTEND_ORIGIN: string;
   ADMIN_EMAIL: string;
   ADMIN_SETUP_TOKEN?: string;

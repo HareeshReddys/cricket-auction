@@ -17,9 +17,11 @@ import {
   assetAllowed,
 } from "./auth.ts";
 import { enqueueSync } from "./sheets.ts";
+import { assetStorage } from "./storage.ts";
 
 export async function dataApi(req: Request, parts: string[], ctx: Context) {
   const env = ctx.env;
+  const storage = assetStorage(env);
   const bindings = () => env;
   const db = () => {
     if (!bindings().DB) throw new AppError("Database is not configured.", 503);
@@ -69,8 +71,6 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
     };
   }
   async function image(value: any, kind: string, tid: string) {
-    if (!env.BUCKET)
-      throw new AppError("Image storage is not configured.", 503);
     let bytes: Uint8Array | ReadableStream, mime: string;
     if (value instanceof File) {
       if (value.size > 12 * 1024 * 1024 || value.size < 20)
@@ -91,7 +91,7 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
       bytes = raw;
     }
     const key = crypto.randomUUID();
-    await env.BUCKET.put(key, bytes, {
+    await storage.put(key, bytes, {
       httpMetadata: { contentType: mime },
       customMetadata: { kind, tid },
     });
@@ -129,7 +129,7 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
     const url = new URL(req.url);
     const method = req.method;
     if (parts[0] === "assets" && method === "GET") {
-      const file = await bindings().BUCKET?.get(parts[1]);
+      const file = await storage.get(parts[1]);
       if (!file) throw new AppError("Image not found.", 404);
       let cache = "private, max-age=86400";
       if (!(await canManage(ctx, file.customMetadata?.tid || ""))) {
@@ -412,7 +412,7 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
         ]);
         return json({ success: true, regId }, 201);
       } catch (e) {
-        await Promise.all(uploaded.map((k) => bindings().BUCKET!.delete(k)));
+        await Promise.all(uploaded.map((k) => storage.delete(k)));
         if (String(e).includes("UNIQUE"))
           throw new AppError("Already registered. Contact the organizer.", 409);
         throw e;
@@ -548,7 +548,7 @@ export async function dataApi(req: Request, parts: string[], ctx: Context) {
             [p.PhotoURL, p.PhotoThumbURL, p.PayScreenshotURL]
               .filter(Boolean)
               .map((url: string) =>
-                bindings().BUCKET!.delete(url.split("/").pop()!),
+                storage.delete(url.split("/").pop()!),
               ),
           );
           return json({ success: true });

@@ -6,6 +6,5 @@
   "compatibility_flags":["nodejs_compat"],
   "vars":{"FRONTEND_ORIGIN":"https://hareeshreddys.github.io","ADMIN_EMAIL":"seepati.hareeshreddy@gmail.com"},
   "d1_databases":[{"binding":"DB","database_name":"boundary-cricket","database_id":"3efae165-67fa-4396-aad8-f41efc8cd141","migrations_dir":"migrations"}],
-  "r2_buckets":[{"binding":"BUCKET","bucket_name":"boundary-cricket-images"}],
   "triggers":{"crons":["*/5 * * * *"]}
 }

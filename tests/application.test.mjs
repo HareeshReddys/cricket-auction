@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { DatabaseSync } from "node:sqlite";
 import fs from "node:fs/promises";
 import worker from "../backend/src/index.ts";
+import { assetStorage } from "../backend/src/storage.ts";
 import { drainSync } from "../backend/src/sheets.ts";
 class DB {
   constructor(sqlite) {
@@ -59,9 +60,9 @@ class Bucket {
     this.files.delete(key);
   }
 }
-async function fixture() {
+async function fixture(databaseAssets = false) {
   const sqlite = new DatabaseSync(":memory:");
-  for (const file of ["0001_tournaments.sql", "0002_accounts_and_sync.sql"])
+  for (const file of ["0001_tournaments.sql", "0002_accounts_and_sync.sql", "0003_database_assets.sql"])
     sqlite.exec(
       await fs.readFile(
         new URL("../backend/migrations/" + file, import.meta.url),
@@ -70,7 +71,7 @@ async function fixture() {
     );
   const env = {
     DB: new DB(sqlite),
-    BUCKET: new Bucket(),
+    ...(databaseAssets ? {} : { BUCKET: new Bucket() }),
     FRONTEND_ORIGIN: "https://example.github.io",
     ADMIN_EMAIL: "admin@example.test",
     ADMIN_SETUP_TOKEN: "local-test-setup-token",
@@ -235,8 +236,9 @@ test("independent login, administrator creation rights, scoped one-time owner in
   const rows = sqlite.prepare("SELECT password_hash FROM users").all();
   assert.ok(rows.every((r) => r.password_hash.length === 64));
 });
-test("public registration preserves original bytes; fast metadata, separate previews, protected receipts and budgets", async () => {
-  const { env, call, admin } = await fixture();
+for (const databaseAssets of [false, true]) {
+test(`public registration preserves original bytes and privacy (${databaseAssets ? "database" : "R2"} storage)`, async () => {
+  const { env, call, admin } = await fixture(databaseAssets);
   const a = await call(
     "/tournaments",
     {
@@ -270,7 +272,7 @@ test("public registration preserves original bytes; fast metadata, separate prev
   const original = snap.players[0].PhotoURL,
     receipt = snap.players[0].PayScreenshotURL;
   const key = new URL(original).pathname.split("/").pop();
-  assert.deepEqual(env.BUCKET.files.get(key).bytes, image);
+  assert.deepEqual(new Uint8Array(await new Response((await assetStorage(env).get(key)).body).arrayBuffer()), image);
   assert.notEqual(snap.players[0].PhotoThumbURL, original);
   let imageResponse = await worker.fetch(new Request(original), env, {
     waitUntil() {},
@@ -345,6 +347,7 @@ test("public registration preserves original bytes; fast metadata, separate prev
   const sync = await call(root + "/sync", null, admin.token);
   assert.equal(sync.sync.status, "not_configured");
 });
+}
 test("Google Sheets automatically creates one workbook per tournament, batches updates and retries failures", async () => {
   const { env, call, admin } = await fixture();
   env.GOOGLE_OAUTH_CLIENT_ID = "test-client";
@@ -417,4 +420,19 @@ test("Google Sheets automatically creates one workbook per tournament, batches u
   } finally {
     globalThis.fetch = actualFetch;
   }
+});
+
+test("database images span chunks without altering bytes and delete completely", async () => {
+  const { env, sqlite } = await fixture(true);
+  const storage = assetStorage(env);
+  const bytes = new Uint8Array(800000);
+  for (let i = 0; i < bytes.length; i++) bytes[i] = i % 251;
+  await storage.put("large", bytes, {httpMetadata: {contentType: "image/png"}, customMetadata: {kind: "payment", tid: "test"}});
+  assert.equal(sqlite.prepare("SELECT COUNT(*) AS n FROM asset_chunks").get().n, 4);
+  const file = await storage.get("large");
+  assert.deepEqual(file.body, bytes);
+  assert.equal(file.customMetadata.kind, "payment");
+  await storage.delete("large");
+  assert.equal(await storage.get("large"), null);
+  assert.equal(sqlite.prepare("SELECT COUNT(*) AS n FROM asset_chunks").get().n, 0);
 });

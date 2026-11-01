@@ -26,7 +26,7 @@ These are the expected URL shapes, not a claim that the new implementation is al
 
 The dashboard reads a metadata-only database snapshot instead of waiting for sequential Apps Script responses containing every base64 photo. List views use separate preview images. Clicking a player photo opens the **original uploaded bytes**, without recompression or downscaling. The registration form sends the original image and its cropped preview separately. Original-image preservation is tested byte for byte.
 
-Photos and private payment receipts are kept in object storage. Private image URLs are signed for 30 minutes. Public results include only verified player names, roles, photos, teams and prices; contact details and receipts require tournament authorization.
+Photos and private payment receipts are kept in the D1 database by default, with original bytes split into small rows. No R2 subscription or payment method is required. The free database limit is 500 MB including image storage (base64 adds approximately one-third overhead); this configuration is intended for small tournaments. R2 remains optional for larger deployments. Private image URLs are signed for 30 minutes. Public results include only verified player names, roles, photos, teams and prices; contact details and receipts require tournament authorization.
 
 The visible auction checks a small version endpoint every three seconds. Player data is fetched again only when the version changes. A cached metadata snapshot is available in the same browser tab during an interruption; auction writes are disabled offline. Browser shell files are cached by a service worker after a first successful visit. Shared registration, login and auction updates require internet access. There is no measured production latency guarantee.
 
@@ -34,12 +34,12 @@ Registration has a clean default design and supports an optional tournament bann
 
 ## One-time hosting setup
 
-GitHub Pages serves static files. The API runs in your own Cloudflare account with D1 for records and R2 for original images. This repository includes the Worker and its deployment workflow; it is independent of the earlier ChatGPT Sites prototype.
+GitHub Pages serves static files. The API runs in your own Cloudflare account with D1 for records and original images. This repository includes the Worker and its deployment workflow; it is independent of the earlier ChatGPT Sites prototype.
 
 1. Run `npm ci --ignore-scripts` with Node 24.
 2. Sign into your own Cloudflare account: `npx wrangler login`.
 3. Create the database: `npx wrangler d1 create boundary-cricket`. Put the returned database ID into `backend/wrangler.jsonc` **once**.
-4. Create image storage: `npx wrangler r2 bucket create boundary-cricket-images`.
+4. Image storage uses D1 automatically. No R2 setup is required. For a larger deployment, optionally create an R2 bucket and configure a `BUCKET` binding.
 5. Check `ADMIN_EMAIL` and `FRONTEND_ORIGIN` in `backend/wrangler.jsonc`. Origins include only scheme and host, not the GitHub repository path. You may list multiple origins separated by commas.
 6. Generate separate strong random values, for example with `openssl rand -hex 32`, and enter them through Wrangler's secret prompt:
    - `npx wrangler secret put ADMIN_SETUP_TOKEN --config backend/wrangler.jsonc`
